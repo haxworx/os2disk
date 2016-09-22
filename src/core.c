@@ -1,7 +1,5 @@
 #include "core.h"
 
-extern Ecore_Thread *thread;
-
 void Error(char *fmt, ...)
 {
     char buf[1024];
@@ -62,6 +60,15 @@ char *path_from_url(char *a)
         }
     }
 
+    str = strstr(addr, "https://");
+    if (str) {
+        str += 8;
+        char *p = strchr(str, '/');
+        if (p) {
+            return p; 
+        }
+    }
+
     if (!p) {
         Error(":2:path_from_url");
     }
@@ -69,7 +76,7 @@ char *path_from_url(char *a)
     return p;
 }
 
-BIO *connect_ssl(char *hostname, int port)
+BIO *connect_ssl(const char *hostname, int port)
 {
     SSL_load_error_strings();
     ERR_load_BIO_strings();
@@ -148,7 +155,7 @@ ssize_t check_one_http_header(int sock, BIO *bio, header_t * headers)
 }
 
 
-int check_http_headers(int sock, BIO *bio, char *addr, char *file)
+int check_http_headers(int sock, BIO *bio, const char *addr, const char *file)
 {
     char out[8192] = { 0 };
     header_t headers;
@@ -211,22 +218,22 @@ int connect_tcp(const char *hostname, int port)
 
 #define CHUNK 512
 
-const char *
+char *
 os_fetch_and_write(const char *remote_url, const char *local_url)
 {
     BIO *bio = NULL;
     int is_ssl = 0;
 
-    const char *infile = remote_url;
+    char *infile = (char *) remote_url;
 
     if (!strncmp("https://", infile, 8)) {
         is_ssl = 1;
     } 
 
-    const char *outfile = local_url;
+    char *outfile = (char *) local_url;
 
-    char *address = strdup(host_from_url(infile));
-    char *path = strdup(path_from_url(infile));
+    const char *address = host_from_url(infile);
+    const char *path = path_from_url(infile);
 
     printf("address: %s\n\n", address);
     printf("path: %s\n\n", path);
@@ -291,18 +298,21 @@ os_fetch_and_write(const char *remote_url, const char *local_url)
         int current = total / percent;
         memset(buf, 0, bytes);
 
-    //    if (ecore_thread_check(thread)) exit(2);
+    //if (ecore_thread_check(thread)) exit(2);
     } while (total < length);
 
     SHA256_Final(result, &ctx);
 
     int i;
 
-    char sha256[SHA256_DIGEST_LENGTH];
+    char sha256[2 * SHA256_DIGEST_LENGTH + 1] = { 0 };
 
+    int j = 0;
     for (i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-        snprintf(sha256, 1, "%02x", (unsigned int) result[i]);
+        snprintf(&sha256[j], sizeof(sha256), "%02x", (unsigned int) result[i]);
+        j += 2;
     } 
   
     return strdup(sha256);
 }
+

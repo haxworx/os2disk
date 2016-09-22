@@ -1,8 +1,6 @@
-#include <Eo.h>
 #include <Elementary.h>
 #include "core.h"
 
-Evas_Object *combo1;
 Evas_Object *pb;
 Evas_Object *bt;
 
@@ -14,12 +12,13 @@ struct distro_t {
     char *url;
 };
 
-static const char *remote_url = NULL;
-static const char *local_url = NULL;
+static char *remote_url = NULL;
+static char *local_url = NULL;
 
-#define DISTRIBUTION_COUNT 9
+#define DISTRIBUTION_COUNT 10
 
 distro_t distributions[DISTRIBUTION_COUNT] = {
+    {"test", "http://enform.haxlab.org/files/default.edj"},
     {"Debian GNU/Linux v8.4 (i386/amd64)", "http://gensho.acc.umu.se/debian-cd/8.4.0/multi-arch/iso-cd/debian-8.4.0-amd64-i386-netinst.iso"},
     {"FreeBSD v10.3 (x86)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-i386-memstick.img"},
     {"FreeBSD v10.3 (amd64)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-amd64-memstick.img"},
@@ -100,7 +99,7 @@ _combobox_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
 {
     char buf[256];
     const char *txt = elm_object_item_text_get(event_info);
-    const int i = elm_object_item_data_get(event_info);
+    int i = (unsigned int) elm_object_item_data_get(event_info);
 
     snprintf(buf, sizeof(buf), "%s", distributions[i].url);
 
@@ -135,8 +134,10 @@ thread_do(void *data, Ecore_Thread *thread)
     elm_progressbar_pulse(pb, EINA_TRUE);
     elm_object_disabled_set(bt, EINA_TRUE);
 
-    const char *sha256sum = os_fetch_and_write(remote_url, local_url);
+    char *sha256sum = os_fetch_and_write(remote_url, local_url);
     printf("it is %s\n\n", sha256sum);
+
+    free(sha256sum);
 }
 
 static void
@@ -162,7 +163,7 @@ del(void *data, Evas_Object *obj, void *event_info)
     if (thread) ecore_thread_cancel(thread);
     thread = NULL;
     evas_object_del(obj);
-    //elm_exit();
+    elm_exit();
 }
 
 static void
@@ -183,6 +184,9 @@ _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
 EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
+    ecore_init(); 
+    elm_init(argc, argv);
+
     elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
     Evas_Object *win = elm_win_util_standard_add("os2drive", "Install an Operating System");
     evas_object_smart_callback_add(win, "delete,request", del, NULL);
@@ -192,7 +196,7 @@ elm_main(int argc, char **argv)
     elm_win_resize_object_add(win, box);
     evas_object_show(box); 
 
-    combo1 = elm_combobox_add(win);
+    Evas_Object *combo1 = elm_combobox_add(win);
     evas_object_size_hint_weight_set(combo1, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(combo1, EVAS_HINT_FILL, 0);
     elm_object_part_text_set(combo1, "guide", "Choose an OS...");
@@ -229,6 +233,7 @@ elm_main(int argc, char **argv)
     evas_object_show(combo2);
  
     evas_object_del(itc);
+
     itc = elm_genlist_item_class_new();
     itc->item_style = "default";
     itc->func.text_get = gl_text_dest_get;
@@ -268,9 +273,14 @@ elm_main(int argc, char **argv)
     
     thread = NULL;
 
-    elm_run();
+    ecore_main_loop_begin();
 
+    elm_run();
+    
     if (thread) ecore_thread_cancel(thread);
+
+    ecore_shutdown();
+    elm_shutdown();
 
     return (0);
 }
