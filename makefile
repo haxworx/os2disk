@@ -12,17 +12,18 @@ else
 endif
 
 FLAGS =  -g -ggdb3 $(shell pkg-config --libs --cflags $(PKGS))
+INCLUDES = $(shell pkg-config --cflags $(PKGS))
 
 OBJECTS = core.o main.o
 
 $(TARGET) : $(OBJECTS)
-	$(CC) $(OBJECTS) $(FLAGS) -o $@
+	$(CC) $(FLAGS) $(OBJECTS) $(FLAGS) -o $@
 
 main.o: $(SRC_DIR)/main.c
-	$(CC) $(FLAGS) -c $(SRC_DIR)/main.c -o $@
+	$(CC) $(INCLUDES) -c $(SRC_DIR)/main.c -o $@
 
 core.o: $(SRC_DIR)/core.c
-	$(CC) $(FLAGS) -c $(SRC_DIR)/core.c -o $@
+	$(CC) $(INCLUDES) -c $(SRC_DIR)/core.c -o $@
 
 clean:
 	-rm $(OBJECTS) $(TARGET)
