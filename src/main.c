@@ -17,7 +17,7 @@ struct distro_t {
 static const char *remote_url = NULL;
 static const char *local_url = NULL;
 
-u#define DISTRIBUTION_COUNT 9
+#define DISTRIBUTION_COUNT 9
 
 distro_t distributions[DISTRIBUTION_COUNT] = {
     {"Debian GNU/Linux v8.4 (i386/amd64)", "http://gensho.acc.umu.se/debian-cd/8.4.0/multi-arch/iso-cd/debian-8.4.0-amd64-i386-netinst.iso"},
