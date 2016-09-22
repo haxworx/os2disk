@@ -131,8 +131,7 @@ static void
 thread_do(void *data, Ecore_Thread *thread)
 {
     int count = 0;
-    elm_progressbar_pulse(pb, EINA_TRUE);
-    elm_object_disabled_set(bt, EINA_TRUE);
+    if (ecore_thread_check(thread)) return;
 
     char *sha256sum = os_fetch_and_write(remote_url, local_url);
     printf("it is %s\n\n", sha256sum);
@@ -145,6 +144,8 @@ thread_end(void *data, Ecore_Thread *thread)
 {
     elm_object_disabled_set(bt, EINA_FALSE);   
     elm_progressbar_pulse(pb, EINA_FALSE);
+    printf("end of thread!\n");
+    if (thread) ecore_thread_cancel(thread);
 }
 
 static void
@@ -163,7 +164,7 @@ del(void *data, Evas_Object *obj, void *event_info)
     if (thread) ecore_thread_cancel(thread);
     thread = NULL;
     evas_object_del(obj);
-    elm_exit();
+    exit(0);
 }
 
 static void
