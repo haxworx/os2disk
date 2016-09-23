@@ -15,26 +15,23 @@ struct distro_t {
 static char *remote_url = NULL;
 static char *local_url = NULL;
 
-#define DISTRIBUTION_COUNT 10
+#define DISTRIBUTION_COUNT 7
 
 distro_t distributions[DISTRIBUTION_COUNT] = {
-    {"test", "http://enform.haxlab.org/files/default.edj"},
     {"Debian GNU/Linux v8.4 (i386/amd64)", "http://gensho.acc.umu.se/debian-cd/8.4.0/multi-arch/iso-cd/debian-8.4.0-amd64-i386-netinst.iso"},
     {"FreeBSD v10.3 (x86)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-i386-memstick.img"},
     {"FreeBSD v10.3 (amd64)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-amd64-memstick.img"},
     {"NetBSD v7.0 (i386)", "http://mirror.planetunix.net/pub/NetBSD/iso/7.0/NetBSD-7.0-i386.iso"},
     {"NetBSD v7.0 (amd64)", "http://mirror.planetunix.net/pub/NetBSD/iso/7.0/NetBSD-7.0-amd64.iso"},
-    {"OpenBSD v5.9 (i386)", "http://mirror.ox.ac.uk/pub/OpenBSD/5.9/i386/install59.fs"},
-    {"OpenBSD v5.9 (amd64)", "http://mirror.ox.ac.uk/pub/OpenBSD/5.9/amd64/install59.fs"},
-    {"OpenBSD v6.0 (snapshot) (i386)", "http://mirror.ox.ac.uk/pub/OpenBSD/snapshots/i386/install60.fs"},
-    {"OpenBSD v6.0 (snapshot) (amd64)", "http://mirror.ox.ac.uk/pub/OpenBSD/snapshots/amd64/install60.fs"},
+    {"OpenBSD v6.0 (snapshot) (i386)", "http://mirror.ox.ac.uk/pub/OpenBSD/6.0/i386/install60.fs"},
+    {"OpenBSD v6.0 (snapshot) (amd64)", "http://mirror.ox.ac.uk/pub/OpenBSD/6.0/amd64/install60.fs"},
 };
 
 #define DEVICE_COUNT 3
 char *storage[DEVICE_COUNT] = {
-    "info.txt",
-    "install.txt",
+    "/dev/sd1c",
     "/dev/null",
+    "file.img",
 };
 
 static char *
@@ -274,7 +271,6 @@ elm_main(int argc, char **argv)
    
     ecore_shutdown();
     elm_shutdown();
-    puts("BYE!"); 
 
     return (0);
 }
