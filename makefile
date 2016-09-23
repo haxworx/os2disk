@@ -14,7 +14,7 @@ endif
 FLAGS =  -g -ggdb3 $(shell pkg-config --libs --cflags $(PKGS))
 INCLUDES = $(shell pkg-config --cflags $(PKGS))
 
-OBJECTS = core.o main.o
+OBJECTS = ui.o core.o main.o
 
 $(TARGET) : $(OBJECTS)
 	$(CC) $(FLAGS) $(OBJECTS) $(FLAGS) -o $@
@@ -25,5 +25,7 @@ main.o: $(SRC_DIR)/main.c
 core.o: $(SRC_DIR)/core.c
 	$(CC) $(INCLUDES) -c $(SRC_DIR)/core.c -o $@
 
+ui.o: $(SRC_DIR)/ui.c
+	$(CC) $(INCLUDES) -c $(SRC_DIR)/ui.c -o $@
 clean:
 	-rm $(OBJECTS) $(TARGET)
