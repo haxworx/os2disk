@@ -13,7 +13,6 @@ static distro_t distributions[] = {
     {NULL, NULL},
 };
 
-
 static char *
 gl_text_get(void *data, Evas_Object *obj EINA_UNUSED, const char *part EINA_UNUSED)
 {
@@ -31,6 +30,25 @@ gl_text_dest_get(void *data, Evas_Object *obj EINA_UNUSED, const char *part EINA
     snprintf(buf, sizeof(buf), "%s", storage[i]);
     return strdup(buf);
 }
+
+void
+update_combobox_storage(Evas_Object *combobox)
+{
+    int i;
+
+    Elm_Genlist_Item_Class *itc;
+    itc = elm_genlist_item_class_new();
+    itc->item_style = "default";
+    itc->func.text_get = gl_text_dest_get;
+    
+    elm_genlist_clear(combobox);
+
+    for (i = 0; storage[i] != NULL; i++)
+        elm_genlist_item_append(combobox, itc, (void *) (uintptr_t) i,
+                NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
+}
+
+
 
 static void
 _combobox2_selected_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED,
@@ -112,6 +130,8 @@ static void
 del(void *data, Evas_Object *obj, void *event_info)
 {
     evas_object_del(obj);
+    ecore_timer_del(timer);
+    ecore_main_loop_quit();
     elm_exit();
 }
 
@@ -166,7 +186,7 @@ void elm_window_create(void)
                                   _combobox_item_pressed_cb, NULL);
 
 
-    Evas_Object *combobox_dest = elm_combobox_add(win);
+    combobox_dest = elm_combobox_add(win);
     evas_object_size_hint_weight_set(combobox_dest, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(combobox_dest, EVAS_HINT_FILL, 0);
     elm_object_part_text_set(combobox_dest, "guide", "destination...");

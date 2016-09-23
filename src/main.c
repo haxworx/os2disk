@@ -1,6 +1,15 @@
 #include "ui.h"
 #include "core.h"
 
+Eina_Bool
+system_check_changes(void *data)
+{
+    (void) data;
+    system_get_disks();
+//    puts("PING");
+    return ECORE_CALLBACK_RENEW;
+}
+
 EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
@@ -10,8 +19,11 @@ elm_main(int argc, char **argv)
     system_get_disks();
 
     elm_window_create();
+   
+    /* scan for disks real-time */ 
+    timer = ecore_timer_add(10.0, system_check_changes, NULL);
 
-    elm_run();
+    ecore_main_loop_begin();
    
     ecore_shutdown();
     elm_shutdown();

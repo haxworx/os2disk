@@ -1,7 +1,21 @@
 #include "disk.h"
+#include "ui.h"
+
+void _clear_storage(void)
+{
+    int i;
+
+    for (i = 0; i < MAX_DISKS; i++) {
+       if (storage[i]) {
+          free(storage[i]);
+          storage[i] = NULL;
+       } 
+    }
+}
 
 void system_get_disks(void)
 {
+    _clear_storage();
 #if defined(__OpenBSD__)
     static const mib[] = { CTL_HW, HW_DISKNAMES };
     static const unsigned int miblen = 2;
@@ -29,6 +43,7 @@ void system_get_disks(void)
         if (!strcmp(s, "hd0")) goto skip;
         if (!strncmp(s, "cd", 2)) goto skip;
         snprintf(buf, sizeof(buf), "/dev/%sc", s);
+        printf("buffer: %s\n\n", buf);
         storage[disk_count] = strdup(buf);
         disk_count++;
 skip:
@@ -40,5 +55,6 @@ skip:
     storage[0] = strdup("/dev/mmcblk1");
     storage[1] = NULL;
 #endif   
+    update_combobox_storage(combobox_dest);
 }
 
