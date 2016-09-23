@@ -131,12 +131,12 @@ static void
 thread_do(void *data, Ecore_Thread *thread)
 {
     int count = 0;
-    if (ecore_thread_check(thread)) return;
-
     char *sha256sum = os_fetch_and_write(remote_url, local_url);
     printf("it is %s\n\n", sha256sum);
-
     free(sha256sum);
+    if (ecore_thread_check(thread)) {
+       return; 
+    }
 }
 
 static void
@@ -144,8 +144,7 @@ thread_end(void *data, Ecore_Thread *thread)
 {
     elm_object_disabled_set(bt, EINA_FALSE);   
     elm_progressbar_pulse(pb, EINA_FALSE);
-    printf("end of thread!\n");
-    if (thread) ecore_thread_cancel(thread);
+    while((ecore_thread_wait(thread, 0.1)) != EINA_TRUE);
 }
 
 static void
@@ -161,10 +160,8 @@ thread_feedback(void *data, Ecore_Thread *thread, void *msg)
 static void
 del(void *data, Evas_Object *obj, void *event_info)
 {
-    if (thread) ecore_thread_cancel(thread);
-    thread = NULL;
     evas_object_del(obj);
-    exit(0);
+    elm_exit();
 }
 
 static void
@@ -179,7 +176,7 @@ _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
    
    printf("remote: %s and local: %s\n", remote_url, local_url);
    thread = ecore_thread_feedback_run(thread_do, thread_feedback, thread_end, thread_cancel,
-					NULL, EINA_TRUE);
+					NULL, EINA_FALSE);
 }
 
 EAPI_MAIN int
@@ -190,7 +187,6 @@ elm_main(int argc, char **argv)
 
     elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
     Evas_Object *win = elm_win_util_standard_add("os2drive", "Install an Operating System");
-    evas_object_smart_callback_add(win, "delete,request", del, NULL);
 
     Evas_Object *box = elm_box_add(win);
     evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -272,16 +268,13 @@ elm_main(int argc, char **argv)
     evas_object_resize(win, 300,100);
     evas_object_show(win);
     
-    thread = NULL;
-
-    ecore_main_loop_begin();
-
+    evas_object_smart_callback_add(win, "delete,request", del, NULL);
+   
     elm_run();
-    
-    if (thread) ecore_thread_cancel(thread);
-
+   
     ecore_shutdown();
     elm_shutdown();
+    puts("BYE!"); 
 
     return (0);
 }

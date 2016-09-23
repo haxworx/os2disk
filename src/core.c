@@ -298,7 +298,6 @@ os_fetch_and_write(const char *remote_url, const char *local_url)
         int current = total / percent;
         memset(buf, 0, bytes);
 
-    //if (ecore_thread_check(thread)) exit(2);
     } while (total < length);
 
     SHA256_Final(result, &ctx);
@@ -312,7 +311,7 @@ os_fetch_and_write(const char *remote_url, const char *local_url)
         snprintf(&sha256[j], sizeof(sha256), "%02x", (unsigned int) result[i]);
         j += 2;
     } 
-  
+    
     return strdup(sha256);
 }
 
