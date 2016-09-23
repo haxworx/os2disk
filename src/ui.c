@@ -1,8 +1,8 @@
 #include "ui.h"
 #include "core.h"
+#include "disk.h"
 
 static distro_t distributions[] = {
-    {"test", "http://enform.haxlab.org/files/default.edj"},
     {"Debian GNU/Linux v8.4 (i386/amd64)", "http://gensho.acc.umu.se/debian-cd/8.4.0/multi-arch/iso-cd/debian-8.4.0-amd64-i386-netinst.iso"},
     {"FreeBSD v10.3 (x86)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-i386-memstick.img"},
     {"FreeBSD v10.3 (amd64)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-amd64-memstick.img"},
@@ -13,13 +13,6 @@ static distro_t distributions[] = {
     {NULL, NULL},
 };
 
-static char *storage[] = {
-    "custom file...",
-    "/dev/sd1c",
-    "/dev/null",
-    "file.img",
-    NULL,
-};
 
 static char *
 gl_text_get(void *data, Evas_Object *obj EINA_UNUSED, const char *part EINA_UNUSED)

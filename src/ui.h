@@ -21,7 +21,5 @@ static char *local_url = NULL;
 void elm_window_create();
 
 static distro_t distrbibutions[];
-static char *storage[];
-
 
 #endif

@@ -6,6 +6,8 @@ elm_main(int argc, char **argv)
 {
     ecore_init(); 
     elm_init(argc, argv);
+ 
+    system_get_disks();
 
     elm_window_create();
 
