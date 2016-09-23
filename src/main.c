@@ -1,6 +1,6 @@
 #include <Elementary.h>
 #include "core.h"
-
+Evas_Object *sha256_label;
 Evas_Object *pb;
 Evas_Object *bt;
 
@@ -15,20 +15,22 @@ struct distro_t {
 static char *remote_url = NULL;
 static char *local_url = NULL;
 
-#define DISTRIBUTION_COUNT 7
+#define DISTRIBUTION_COUNT 8
 
 distro_t distributions[DISTRIBUTION_COUNT] = {
+    {"test", "http://enform.haxlab.org/files/default.edj"},
     {"Debian GNU/Linux v8.4 (i386/amd64)", "http://gensho.acc.umu.se/debian-cd/8.4.0/multi-arch/iso-cd/debian-8.4.0-amd64-i386-netinst.iso"},
     {"FreeBSD v10.3 (x86)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-i386-memstick.img"},
     {"FreeBSD v10.3 (amd64)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-amd64-memstick.img"},
     {"NetBSD v7.0 (i386)", "http://mirror.planetunix.net/pub/NetBSD/iso/7.0/NetBSD-7.0-i386.iso"},
     {"NetBSD v7.0 (amd64)", "http://mirror.planetunix.net/pub/NetBSD/iso/7.0/NetBSD-7.0-amd64.iso"},
-    {"OpenBSD v6.0 (snapshot) (i386)", "http://mirror.ox.ac.uk/pub/OpenBSD/6.0/i386/install60.fs"},
-    {"OpenBSD v6.0 (snapshot) (amd64)", "http://mirror.ox.ac.uk/pub/OpenBSD/6.0/amd64/install60.fs"},
+    {"OpenBSD v6.0 (i386)", "http://mirror.ox.ac.uk/pub/OpenBSD/6.0/i386/install60.fs"},
+    {"OpenBSD v6.0 (amd64)", "http://mirror.ox.ac.uk/pub/OpenBSD/6.0/amd64/install60.fs"},
 };
 
-#define DEVICE_COUNT 3
+#define DEVICE_COUNT 4
 char *storage[DEVICE_COUNT] = {
+    "custom file...",
     "/dev/sd1c",
     "/dev/null",
     "file.img",
@@ -96,7 +98,7 @@ _combobox_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
 {
     char buf[256];
     const char *txt = elm_object_item_text_get(event_info);
-    int i = (unsigned int) elm_object_item_data_get(event_info);
+    int i = elm_object_item_data_get(event_info);
 
     snprintf(buf, sizeof(buf), "%s", distributions[i].url);
 
@@ -112,25 +114,25 @@ _combobox2_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
                       void *event_info)
 {
     char buf[256];
-    const int i = elm_object_item_data_get(event_info);
+    int i = elm_object_item_data_get(event_info);
     const char *txt = elm_object_item_text_get(event_info);
     snprintf(buf, sizeof(buf), "%s", storage[i]);
 
     if (local_url) free(local_url);
-    local_url = strdup(buf);
+    local_url = strdup(txt);
 
     elm_object_text_set(obj, txt);
     elm_combobox_hover_end(obj);
 }
 
+char *sha256sum = NULL;
 
 static void
 thread_do(void *data, Ecore_Thread *thread)
 {
     int count = 0;
-    char *sha256sum = os_fetch_and_write(remote_url, local_url);
-    printf("it is %s\n\n", sha256sum);
-    free(sha256sum);
+    sha256sum = os_fetch_and_write(remote_url, local_url);
+
     if (ecore_thread_check(thread)) {
        return; 
     }
@@ -139,6 +141,12 @@ thread_do(void *data, Ecore_Thread *thread)
 static void
 thread_end(void *data, Ecore_Thread *thread)
 {
+    if (sha256sum) {
+        elm_object_text_set(sha256_label,sha256sum); 
+        printf("it is %s\n", sha256sum);
+        free(sha256sum);
+    }
+
     elm_object_disabled_set(bt, EINA_FALSE);   
     elm_progressbar_pulse(pb, EINA_FALSE);
     while((ecore_thread_wait(thread, 0.1)) != EINA_TRUE);
@@ -183,17 +191,18 @@ elm_main(int argc, char **argv)
     elm_init(argc, argv);
 
     elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
-    Evas_Object *win = elm_win_util_standard_add("os2drive", "Install an Operating System");
+    Evas_Object *win = elm_win_util_standard_add("os2drive", "OS2disk");
 
     Evas_Object *box = elm_box_add(win);
     evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    //elm_box_padding_set(box,16, 16);
     elm_win_resize_object_add(win, box);
     evas_object_show(box); 
-
+    
     Evas_Object *combo1 = elm_combobox_add(win);
     evas_object_size_hint_weight_set(combo1, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(combo1, EVAS_HINT_FILL, 0);
-    elm_object_part_text_set(combo1, "guide", "Choose an OS...");
+    elm_object_part_text_set(combo1, "guide", "image...");
     elm_box_pack_end(box, combo1);
     evas_object_show(combo1);
 
@@ -219,10 +228,11 @@ elm_main(int argc, char **argv)
     evas_object_smart_callback_add(combo1, "item,pressed",
                                   _combobox_item_pressed_cb, NULL);
 
+
     Evas_Object *combo2 = elm_combobox_add(win);
     evas_object_size_hint_weight_set(combo2, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(combo2, EVAS_HINT_FILL, 0);
-    elm_object_part_text_set(combo2, "guide", "select a destination...");
+    elm_object_part_text_set(combo2, "guide", "destination...");
     elm_box_pack_end(box, combo2);
     evas_object_show(combo2);
  
@@ -255,12 +265,31 @@ elm_main(int argc, char **argv)
     elm_box_pack_end(box, pb);
     evas_object_show(pb);
 
+    sha256_label = elm_label_add(win);
+    elm_box_pack_end(box, sha256_label);
+    evas_object_size_hint_align_set(sha256_label, 0.1, EVAS_HINT_FILL);
+    evas_object_show(sha256_label);
+
+    Evas_Object *table = elm_table_add(win);
+    elm_box_pack_end(box, table);
+    evas_object_show(table);
+
     bt = elm_button_add(win);
     elm_object_text_set(bt, "Write");
-    elm_box_pack_end(box, bt);
     evas_object_show(bt);
+    elm_table_pack(table, bt, 0, 0, 1, 1);
 
     evas_object_smart_callback_add(bt, "clicked", _bt_clicked_cb, NULL);
+
+    Evas_Object *bt_about = elm_button_add(win);
+    elm_object_text_set(bt_about, "About");
+    evas_object_show(bt_about);
+    elm_table_pack(table, bt_about, 1, 0, 1, 1);
+
+    Evas_Object *bt_cancel = elm_button_add(win);
+    elm_object_text_set(bt_cancel, "Cancel");
+    evas_object_show(bt_cancel);
+    elm_table_pack(table, bt_cancel, 2, 0, 1, 1);
 
     evas_object_resize(win, 300,100);
     evas_object_show(win);
