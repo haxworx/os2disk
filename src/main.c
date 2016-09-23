@@ -1,10 +1,9 @@
 #include <Elementary.h>
 #include "core.h"
-Evas_Object *sha256_label;
-Evas_Object *pb;
-Evas_Object *bt;
 
-Eina_Bool pb_enabled = EINA_FALSE;
+Evas_Object *sha256_label;
+Evas_Object *progressbar;
+Evas_Object *bt_ok;
 
 typedef struct distro_t distro_t;
 struct distro_t {
@@ -15,9 +14,7 @@ struct distro_t {
 static char *remote_url = NULL;
 static char *local_url = NULL;
 
-#define DISTRIBUTION_COUNT 8
-
-distro_t distributions[DISTRIBUTION_COUNT] = {
+distro_t distributions[] = {
     {"test", "http://enform.haxlab.org/files/default.edj"},
     {"Debian GNU/Linux v8.4 (i386/amd64)", "http://gensho.acc.umu.se/debian-cd/8.4.0/multi-arch/iso-cd/debian-8.4.0-amd64-i386-netinst.iso"},
     {"FreeBSD v10.3 (x86)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-i386-memstick.img"},
@@ -26,14 +23,15 @@ distro_t distributions[DISTRIBUTION_COUNT] = {
     {"NetBSD v7.0 (amd64)", "http://mirror.planetunix.net/pub/NetBSD/iso/7.0/NetBSD-7.0-amd64.iso"},
     {"OpenBSD v6.0 (i386)", "http://mirror.ox.ac.uk/pub/OpenBSD/6.0/i386/install60.fs"},
     {"OpenBSD v6.0 (amd64)", "http://mirror.ox.ac.uk/pub/OpenBSD/6.0/amd64/install60.fs"},
+    {NULL, NULL},
 };
 
-#define DEVICE_COUNT 4
-char *storage[DEVICE_COUNT] = {
+char *storage[] = {
     "custom file...",
     "/dev/sd1c",
     "/dev/null",
     "file.img",
+    NULL,
 };
 
 static char *
@@ -55,22 +53,6 @@ gl_text_dest_get(void *data, Evas_Object *obj EINA_UNUSED, const char *part EINA
 }
 
 static void
-_combobox_clicked_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED,
-                     void *event_info EINA_UNUSED)
-{
-   //printf("Hover button is clicked and 'clicked' callback is called.\n");
-}
-
-static void
-_combobox_selected_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED,
-                      void *event_info)
-{
-   const char *txt = elm_object_item_text_get(event_info);
-
-   printf("'selected' callback is called. (selected item : %s)\n", txt);
-}
-
-static void
 _combobox2_selected_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED,
                       void *event_info)
 {
@@ -79,26 +61,12 @@ _combobox2_selected_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED,
 }
 
 static void
-_combobox_dismissed_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED,
-                       void *event_info EINA_UNUSED)
-{
- //  printf("'dismissed' callback is called.\n");
-}
-
-static void
-_combobox_expanded_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED,
-                       void *event_info EINA_UNUSED)
-{
-//   printf("'expanded' callback is called.\n");
-}
-
-static void
 _combobox_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
                       void *event_info)
 {
     char buf[256];
     const char *txt = elm_object_item_text_get(event_info);
-    int i = elm_object_item_data_get(event_info);
+    int i = (int)(uintptr_t) elm_object_item_data_get(event_info);
 
     snprintf(buf, sizeof(buf), "%s", distributions[i].url);
 
@@ -114,7 +82,7 @@ _combobox2_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
                       void *event_info)
 {
     char buf[256];
-    int i = elm_object_item_data_get(event_info);
+    int i = (int)(uintptr_t) elm_object_item_data_get(event_info);
     const char *txt = elm_object_item_text_get(event_info);
     snprintf(buf, sizeof(buf), "%s", storage[i]);
 
@@ -147,8 +115,8 @@ thread_end(void *data, Ecore_Thread *thread)
         free(sha256sum);
     }
 
-    elm_object_disabled_set(bt, EINA_FALSE);   
-    elm_progressbar_pulse(pb, EINA_FALSE);
+    elm_object_disabled_set(bt_ok, EINA_FALSE);   
+    elm_progressbar_pulse(progressbar, EINA_FALSE);
     while((ecore_thread_wait(thread, 0.1)) != EINA_TRUE);
 }
 
@@ -177,7 +145,7 @@ _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
    if (!local_url) return;
 
    elm_object_disabled_set(obj, EINA_TRUE);
-   elm_progressbar_pulse(pb, EINA_TRUE);
+   elm_progressbar_pulse(progressbar, EINA_TRUE);
    
    printf("remote: %s and local: %s\n", remote_url, local_url);
    thread = ecore_thread_feedback_run(thread_do, thread_feedback, thread_end, thread_cancel,
@@ -187,6 +155,8 @@ _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
 EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
+    int i;
+
     ecore_init(); 
     elm_init(argc, argv);
 
@@ -195,75 +165,56 @@ elm_main(int argc, char **argv)
 
     Evas_Object *box = elm_box_add(win);
     evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    //elm_box_padding_set(box,16, 16);
     elm_win_resize_object_add(win, box);
     evas_object_show(box); 
     
-    Evas_Object *combo1 = elm_combobox_add(win);
-    evas_object_size_hint_weight_set(combo1, EVAS_HINT_EXPAND, 0);
-    evas_object_size_hint_align_set(combo1, EVAS_HINT_FILL, 0);
-    elm_object_part_text_set(combo1, "guide", "image...");
-    elm_box_pack_end(box, combo1);
-    evas_object_show(combo1);
+    Evas_Object *combobox_source = elm_combobox_add(win);
+    evas_object_size_hint_weight_set(combobox_source, EVAS_HINT_EXPAND, 0);
+    evas_object_size_hint_align_set(combobox_source, EVAS_HINT_FILL, 0);
+    elm_object_part_text_set(combobox_source, "guide", "image...");
+    elm_box_pack_end(box, combobox_source);
+    evas_object_show(combobox_source);
 
     Elm_Genlist_Item_Class *itc;
     itc = elm_genlist_item_class_new();
     itc->item_style = "default";
     itc->func.text_get = gl_text_get;
 
-    int i;
-    for (i = 0; i < DISTRIBUTION_COUNT; i++)
-        elm_genlist_item_append(combo1, itc, (void *) i,
+    for (i = 0; distributions[i].name != NULL; i++)
+        elm_genlist_item_append(combobox_source, itc, (void *) (uintptr_t) i,
 		NULL, ELM_GENLIST_ITEM_NONE, NULL,
-                (void *) i);
+                (void *) (uintptr_t) i);
 
-    evas_object_smart_callback_add(combo1, "clicked",
-                                  _combobox_clicked_cb, NULL);
-    evas_object_smart_callback_add(combo1, "selected",
-                                  _combobox_selected_cb, NULL);
-    evas_object_smart_callback_add(combo1, "dismissed",
-                                  _combobox_dismissed_cb, NULL);
-    evas_object_smart_callback_add(combo1, "expanded",
-                                  _combobox_expanded_cb, NULL);
-    evas_object_smart_callback_add(combo1, "item,pressed",
+    evas_object_smart_callback_add(combobox_source, "item,pressed",
                                   _combobox_item_pressed_cb, NULL);
 
 
-    Evas_Object *combo2 = elm_combobox_add(win);
-    evas_object_size_hint_weight_set(combo2, EVAS_HINT_EXPAND, 0);
-    evas_object_size_hint_align_set(combo2, EVAS_HINT_FILL, 0);
-    elm_object_part_text_set(combo2, "guide", "destination...");
-    elm_box_pack_end(box, combo2);
-    evas_object_show(combo2);
- 
-    evas_object_del(itc);
+    Evas_Object *combobox_dest = elm_combobox_add(win);
+    evas_object_size_hint_weight_set(combobox_dest, EVAS_HINT_EXPAND, 0);
+    evas_object_size_hint_align_set(combobox_dest, EVAS_HINT_FILL, 0);
+    elm_object_part_text_set(combobox_dest, "guide", "destination...");
+    elm_box_pack_end(box, combobox_dest);
+    evas_object_show(combobox_dest);
+
 
     itc = elm_genlist_item_class_new();
     itc->item_style = "default";
     itc->func.text_get = gl_text_dest_get;
 
-    for (i = 0; i < DEVICE_COUNT; i++)
-        elm_genlist_item_append(combo2, itc, (void *) i,
-                NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *) i);
+    for (i = 0; storage[i] != NULL; i++)
+        elm_genlist_item_append(combobox_dest, itc, (void *) (uintptr_t) i,
+                NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
      
-    evas_object_smart_callback_add(combo2, "clicked",
-                                  _combobox_clicked_cb, NULL);
-    evas_object_smart_callback_add(combo2, "selected",
-                                  _combobox_selected_cb, NULL);
-    evas_object_smart_callback_add(combo2, "dismissed",
-                                  _combobox_dismissed_cb, NULL);
-    evas_object_smart_callback_add(combo2, "expanded",
-                                  _combobox_expanded_cb, NULL);
-    evas_object_smart_callback_add(combo2, "item,pressed",
+    evas_object_smart_callback_add(combobox_dest, "item,pressed",
                                   _combobox2_item_pressed_cb, NULL);
 
-    pb = elm_progressbar_add(win);
-    evas_object_size_hint_align_set(pb, EVAS_HINT_FILL, 0.5);
-    evas_object_size_hint_weight_set(pb, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    elm_progressbar_pulse_set(pb, EINA_TRUE);
-    elm_progressbar_span_size_set(pb, 1.0);
-    elm_box_pack_end(box, pb);
-    evas_object_show(pb);
+    progressbar= elm_progressbar_add(win);
+    evas_object_size_hint_align_set(progressbar, EVAS_HINT_FILL, 0.5);
+    evas_object_size_hint_weight_set(progressbar, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    elm_progressbar_pulse_set(progressbar, EINA_TRUE);
+    elm_progressbar_span_size_set(progressbar, 1.0);
+    elm_box_pack_end(box, progressbar);
+    evas_object_show(progressbar);
 
     sha256_label = elm_label_add(win);
     elm_box_pack_end(box, sha256_label);
@@ -274,12 +225,12 @@ elm_main(int argc, char **argv)
     elm_box_pack_end(box, table);
     evas_object_show(table);
 
-    bt = elm_button_add(win);
-    elm_object_text_set(bt, "Write");
-    evas_object_show(bt);
-    elm_table_pack(table, bt, 0, 0, 1, 1);
+    bt_ok = elm_button_add(win);
+    elm_object_text_set(bt_ok, "Write");
+    evas_object_show(bt_ok);
+    elm_table_pack(table, bt_ok, 0, 0, 1, 1);
 
-    evas_object_smart_callback_add(bt, "clicked", _bt_clicked_cb, NULL);
+    evas_object_smart_callback_add(bt_ok, "clicked", _bt_clicked_cb, NULL);
 
     Evas_Object *bt_about = elm_button_add(win);
     elm_object_text_set(bt_about, "About");
