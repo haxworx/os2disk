@@ -267,7 +267,7 @@ elm_main(int argc, char **argv)
 
     sha256_label = elm_label_add(win);
     elm_box_pack_end(box, sha256_label);
-    evas_object_size_hint_align_set(sha256_label, 0.1, EVAS_HINT_FILL);
+    evas_object_size_hint_align_set(sha256_label, 0.5, EVAS_HINT_FILL);
     evas_object_show(sha256_label);
 
     Evas_Object *table = elm_table_add(win);
@@ -291,7 +291,7 @@ elm_main(int argc, char **argv)
     evas_object_show(bt_cancel);
     elm_table_pack(table, bt_cancel, 2, 0, 1, 1);
 
-    evas_object_resize(win, 300,100);
+    evas_object_resize(win, 400,100);
     evas_object_show(win);
     
     evas_object_smart_callback_add(win, "delete,request", del, NULL);
