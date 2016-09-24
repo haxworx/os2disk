@@ -94,7 +94,7 @@ static void
 thread_do(void *data, Ecore_Thread *thread)
 {
     int count = 0;
-    sha256sum = os_fetch_and_write(remote_url, local_url);
+    sha256sum = os_fetch_and_write(thread, remote_url, local_url);
 
     if (ecore_thread_check(thread)) {
        return;
@@ -118,9 +118,12 @@ thread_end(void *data, Ecore_Thread *thread)
 static void
 thread_feedback(void *data, Ecore_Thread *thread, void *msg)
 {
-    int *progress = msg;
-    printf("progress is %d\n\n", *progress);
-    free(progress);
+    int *c = msg;
+//    printf("here is progress is %d\n\n", *c);
+
+    elm_progressbar_value_set(progressbar, (double) *c / 100);
+
+    free(c);
 }
 
 #define thread_cancel thread_end
@@ -210,6 +213,7 @@ void elm_window_create(void)
     evas_object_size_hint_weight_set(progressbar, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     elm_progressbar_pulse_set(progressbar, EINA_TRUE);
     elm_progressbar_span_size_set(progressbar, 1.0);
+    elm_progressbar_unit_format_set(progressbar, "%1.2f%%");
     elm_box_pack_end(box, progressbar);
     evas_object_show(progressbar);
 

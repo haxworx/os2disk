@@ -27,7 +27,7 @@ static Ecore_Thread *thread;
 
 #define h_addr h_addr_list[0]
 
-char *os_fetch_and_write(const char *url, const char *uri);
+char *os_fetch_and_write(Ecore_Thread *thread, const char *url, const char *uri);
 
 char *strdup(const char *s);
 

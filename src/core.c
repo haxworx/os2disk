@@ -222,7 +222,7 @@ int connect_tcp(const char *hostname, int port)
 #define CHUNK 512
 
 char *
-os_fetch_and_write(const char *remote_url, const char *local_url)
+os_fetch_and_write(Ecore_Thread *thread, const char *remote_url, const char *local_url)
 {
     BIO *bio = NULL;
     int is_ssl = 0;
@@ -299,6 +299,10 @@ os_fetch_and_write(const char *remote_url, const char *local_url)
             total += count;
         }
         int current = total / percent;
+        int *tmp = malloc(sizeof(double));
+        *tmp = (int) current; 
+        ecore_thread_feedback(thread, tmp);
+
         memset(buf, 0, bytes);
 
     } while (total < length);
