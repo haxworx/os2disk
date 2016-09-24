@@ -10,6 +10,6 @@
 #define MAX_DISKS 10
 char *storage[MAX_DISKS];
 
-void system_get_disks(void);
+int system_get_disks(void);
 
 #endif

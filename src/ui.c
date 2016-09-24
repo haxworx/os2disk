@@ -129,7 +129,9 @@ static void
 del(void *data, Evas_Object *obj, void *event_info)
 {
     evas_object_del(obj);
-    ecore_timer_del(timer);
+    if (timer) {
+        ecore_timer_del(timer);
+    }
     ecore_main_loop_quit();
     elm_exit();
 }

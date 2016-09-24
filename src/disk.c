@@ -13,7 +13,7 @@ void _clear_storage(void)
     }
 }
 
-void system_get_disks(void)
+int system_get_disks(void)
 {
     int disk_count = 0;
 
@@ -65,6 +65,10 @@ skip:
         break;
     };
 
-    update_combobox_storage(combobox_dest);
+    if (disk_count) {
+        update_combobox_storage(combobox_dest);
+    }
+
+    return disk_count;
 }
 

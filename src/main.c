@@ -5,7 +5,11 @@ Eina_Bool
 system_check_changes(void *data)
 {
     (void) data;
-    system_get_disks();
+    int count = system_get_disks();
+    if (count) {
+        ecore_timer_del(timer);
+        timer = NULL;
+    }
 
     return ECORE_CALLBACK_RENEW;
 }
