@@ -23,7 +23,7 @@
 #include <openssl/err.h>
 #include <Ecore.h>
 
-static Ecore_Thread *thread;
+//static Ecore_Thread *thread;
 
 #define h_addr h_addr_list[0]
 

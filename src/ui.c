@@ -49,13 +49,6 @@ update_combobox_storage(Evas_Object *combobox)
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
 }
 
-static void
-_combobox2_selected_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED,
-                      void *event_info)
-{
-   const char *txt = elm_object_item_text_get(event_info);
-   printf("'selected' callback is called. (selected item : %s)\n", txt);
-}
 
 static void
 _combobox_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
@@ -73,6 +66,7 @@ _combobox_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
     elm_object_text_set(obj, txt);
     elm_combobox_hover_end(obj);
 }
+
 
 static void
 _combobox2_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
@@ -153,8 +147,6 @@ _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
    thread = ecore_thread_feedback_run(thread_do, thread_feedback, thread_end, thread_cancel,
                                         NULL, EINA_FALSE);
 }
-
-
 
 
 void elm_window_create(void)
@@ -248,3 +240,5 @@ void elm_window_create(void)
 
     evas_object_smart_callback_add(win, "delete,request", del, NULL);
 }
+
+

@@ -4,6 +4,7 @@
 #include <Elementary.h>
 #include <Ecore.h>
 
+Ecore_Thread *thread;
 Ecore_Timer *timer;
 Evas_Object *combobox_dest;
 Evas_Object *sha256_label;
