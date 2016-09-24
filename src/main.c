@@ -6,7 +6,7 @@ system_check_changes(void *data)
 {
     (void) data;
     system_get_disks();
-//    puts("PING");
+
     return ECORE_CALLBACK_RENEW;
 }
 
@@ -15,13 +15,13 @@ elm_main(int argc, char **argv)
 {
     ecore_init(); 
     elm_init(argc, argv);
- 
+
     system_get_disks();
 
     elm_window_create();
    
     /* scan for disks real-time */ 
-    timer = ecore_timer_add(10.0, system_check_changes, NULL);
+    timer = ecore_timer_add(3.0, system_check_changes, NULL);
 
     ecore_main_loop_begin();
    

@@ -28,6 +28,7 @@ gl_text_dest_get(void *data, Evas_Object *obj EINA_UNUSED, const char *part EINA
     char buf[128];
     int i = (int)(uintptr_t)data;
     snprintf(buf, sizeof(buf), "%s", storage[i]);
+
     return strdup(buf);
 }
 
@@ -42,13 +43,11 @@ update_combobox_storage(Evas_Object *combobox)
     itc->func.text_get = gl_text_dest_get;
     
     elm_genlist_clear(combobox);
-
+     
     for (i = 0; storage[i] != NULL; i++)
         elm_genlist_item_append(combobox, itc, (void *) (uintptr_t) i,
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
 }
-
-
 
 static void
 _combobox2_selected_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED,

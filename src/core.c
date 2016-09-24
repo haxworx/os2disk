@@ -1,5 +1,8 @@
 #include "core.h"
 
+/* This is a fallback from ecore_con */
+/* Not done yet...! */
+
 void Error(char *fmt, ...)
 {
     char buf[1024];

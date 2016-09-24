@@ -15,7 +15,10 @@ void _clear_storage(void)
 
 void system_get_disks(void)
 {
+    int disk_count = 0;
+
     _clear_storage();
+
 #if defined(__OpenBSD__)
     static const mib[] = { CTL_HW, HW_DISKNAMES };
     static const unsigned int miblen = 2;
@@ -30,7 +33,6 @@ void system_get_disks(void)
 
     sysctl(mib, miblen, drives, &len, NULL, 0);
 
-    int disk_count = 0;
     char buf[128];
     char *s = drives;
     while (s) {
@@ -44,17 +46,25 @@ void system_get_disks(void)
         if (!strncmp(s, "cd", 2)) goto skip;
         snprintf(buf, sizeof(buf), "/dev/%sc", s);
         printf("buffer: %s\n\n", buf);
-        storage[disk_count] = strdup(buf);
-        disk_count++;
+        storage[disk_count++] = strdup(buf);
 skip:
         s = strchr(end, ',');
     }
-   
     storage[disk_count] = NULL;
 #else 
     storage[0] = strdup("/dev/mmcblk1");
     storage[1] = NULL;
 #endif   
+
+    switch (disk_count) {
+    case 0:
+        elm_object_part_text_set(combobox_dest, "guide", "");
+        break;
+    case 1:
+        elm_object_part_text_set(combobox_dest, "guide", storage[0]);
+        break;
+    };
+
     update_combobox_storage(combobox_dest);
 }
 
