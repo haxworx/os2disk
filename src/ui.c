@@ -123,7 +123,7 @@ thread_feedback(void *data, Ecore_Thread *thread, void *msg)
 #define thread_cancel thread_end
 
 static void
-del(void *data, Evas_Object *obj, void *event_info)
+win_del(void *data, Evas_Object *obj, void *event_info)
 {
     evas_object_del(obj);
     if (timer) {
@@ -238,7 +238,7 @@ void elm_window_create(void)
     evas_object_resize(win, 400,100);
     evas_object_show(win);
 
-    evas_object_smart_callback_add(win, "delete,request", del, NULL);
+    evas_object_smart_callback_add(win, "delete,request", win_del, NULL);
 }
 
 
