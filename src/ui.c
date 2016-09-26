@@ -47,6 +47,9 @@ update_combobox_storage(Evas_Object *combobox)
     for (i = 0; storage[i] != NULL; i++)
         elm_genlist_item_append(combobox, itc, (void *) (uintptr_t) i,
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
+    if (i) {
+        elm_object_part_text_set(combobox_dest, "guide", storage[0]);
+    }
 }
 
 

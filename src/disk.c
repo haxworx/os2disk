@@ -56,15 +56,6 @@ skip:
     storage[1] = NULL;
 #endif   
 
-    switch (disk_count) {
-    case 0:
-        elm_object_part_text_set(combobox_dest, "guide", "");
-        break;
-    case 1:
-        elm_object_part_text_set(combobox_dest, "guide", storage[0]);
-        break;
-    };
-
     if (disk_count) {
         update_combobox_storage(combobox_dest);
     }

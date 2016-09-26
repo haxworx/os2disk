@@ -1,5 +1,4 @@
 #include "ui.h"
-#include "core.h"
 
 Eina_Bool
 system_check_changes(void *data)
