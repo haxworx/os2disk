@@ -44,11 +44,15 @@ update_combobox_storage(Evas_Object *combobox)
     
     elm_genlist_clear(combobox);
      
-    for (i = 0; storage[i] != NULL; i++)
+    for (i = 0; storage[i] != NULL; i++) {
         elm_genlist_item_append(combobox, itc, (void *) (uintptr_t) i,
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
+        Elm_Object_Item *item = elm_genlist_first_item_get(combobox);
+	elm_genlist_item_show(item, ELM_GENLIST_ITEM_SCROLLTO_TOP);
+    } 
+
     if (i) {
-        elm_object_part_text_set(combobox_dest, "guide", storage[0]);
+        elm_object_part_text_set(combobox_dest, "guide", "destination...");
     }
 }
 
@@ -137,6 +141,20 @@ win_del(void *data, Evas_Object *obj, void *event_info)
 }
 
 static void
+_bt_cancel_clicked_cb(void *data, Evas_Object *obj, void *event)
+{
+    evas_object_del(obj);
+
+    if (timer) {
+        ecore_timer_del(timer);
+    }
+    
+    //while((ecore_thread_wait(thread, 0.1)) != EINA_TRUE);
+
+    elm_exit();
+}
+
+static void
 _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
 {
    (void) data;
@@ -167,9 +185,8 @@ void elm_window_create(void)
     Evas_Object *combobox_source = elm_combobox_add(win);
     evas_object_size_hint_weight_set(combobox_source, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(combobox_source, EVAS_HINT_FILL, 0);
-    elm_object_part_text_set(combobox_source, "guide", "image...");
+    elm_object_part_text_set(combobox_source, "guide", "source...");
     elm_box_pack_end(box, combobox_source);
-    evas_object_show(combobox_source);
 
     Elm_Genlist_Item_Class *itc;
     itc = elm_genlist_item_class_new();
@@ -184,6 +201,10 @@ void elm_window_create(void)
     evas_object_smart_callback_add(combobox_source, "item,pressed",
                                   _combobox_item_pressed_cb, NULL);
 
+    Elm_Object_Item *item = elm_genlist_first_item_get(combobox_source);
+    elm_genlist_item_show(item, ELM_GENLIST_ITEM_SCROLLTO_TOP);
+    elm_genlist_item_bring_in(item, ELM_GENLIST_ITEM_SCROLLTO_TOP);
+    evas_object_show(combobox_source);
 
     combobox_dest = elm_combobox_add(win);
     evas_object_size_hint_weight_set(combobox_dest, EVAS_HINT_EXPAND, 0);
@@ -228,15 +249,12 @@ void elm_window_create(void)
 
     evas_object_smart_callback_add(bt_ok, "clicked", _bt_clicked_cb, NULL);
 
-    Evas_Object *bt_about = elm_button_add(win);
-    elm_object_text_set(bt_about, "About");
-    evas_object_show(bt_about);
-    elm_table_pack(table, bt_about, 1, 0, 1, 1);
-
     Evas_Object *bt_cancel = elm_button_add(win);
     elm_object_text_set(bt_cancel, "Cancel");
     evas_object_show(bt_cancel);
-    elm_table_pack(table, bt_cancel, 2, 0, 1, 1);
+    elm_table_pack(table, bt_cancel, 1, 0, 1, 1);
+
+    evas_object_smart_callback_add(bt_cancel, "clicked", _bt_cancel_clicked_cb, NULL);
 
     evas_object_resize(win, 400,100);
     evas_object_show(win);

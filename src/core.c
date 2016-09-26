@@ -298,10 +298,15 @@ os_fetch_and_write(Ecore_Thread *thread, const char *remote_url, const char *loc
             chunk -= count;
             total += count;
         }
+
         int current = total / percent;
         int *tmp = malloc(sizeof(double));
         *tmp = (int) current; 
         ecore_thread_feedback(thread, tmp);
+
+        if (ecore_thread_check(thread)) {
+	    return;
+        }
 
         memset(buf, 0, bytes);
 

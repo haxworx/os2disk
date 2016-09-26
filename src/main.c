@@ -20,7 +20,7 @@ elm_main(int argc, char **argv)
     elm_init(argc, argv);
 
     if (!system_get_disks()) {
-        /* scan for disks real-time */ 
+        /* keep checking until disk found */ 
         timer = ecore_timer_add(3.0, system_check_changes, NULL);
     }
 
