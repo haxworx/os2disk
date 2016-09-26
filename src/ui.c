@@ -56,6 +56,31 @@ update_combobox_storage(Evas_Object *combobox)
     }
 }
 
+void error_popup(Evas_Object *win)
+{
+    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
+    elm_win_autodel_set(win, EINA_TRUE);
+
+    Evas_Object *content = elm_label_add(win);
+    elm_object_text_set(content, "<align=center>You don't have valid permissions. <br>Try running with 'sudo' or as root.</align>");
+
+    Evas_Object *popup = elm_popup_add(win);
+
+    elm_object_content_set(popup, content);
+
+    elm_object_part_text_set(popup, "title,text", "Error");
+   
+    evas_object_show(popup);
+
+    evas_object_smart_callback_add(popup, "block,clicked", NULL, NULL);
+
+    evas_object_show(win);
+
+    elm_run();
+
+    exit(1); 
+}
+
 
 static void
 _combobox_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
@@ -257,6 +282,12 @@ void elm_window_create(void)
     evas_object_smart_callback_add(bt_cancel, "clicked", _bt_cancel_clicked_cb, NULL);
 
     evas_object_resize(win, 400,100);
+
+    uid_t euid = geteuid();
+    if (euid != 0) {
+        error_popup(win);
+    }
+
     evas_object_show(win);
 
     evas_object_smart_callback_add(win, "delete,request", win_del, NULL);
