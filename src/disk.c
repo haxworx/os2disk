@@ -1,5 +1,8 @@
 #include "disk.h"
 #include "ui.h"
+#include <Eina.h>
+#include <Eeze.h>
+#include <Eeze_Disk.h>
 
 void _clear_storage(void)
 {
@@ -50,13 +53,40 @@ int system_get_disks(void)
 skip:
         s = strchr(end, ',');
     }
-    storage[disk_count] = NULL;
 #else 
-    // FIXME: detect disks Linux
-    storage[0] = strdup("/dev/sdb");
-    storage[0] = strdup("/dev/mmcblk1");
-    storage[1] = NULL;
+    eeze_init();
+    Eina_List *devices = eeze_udev_find_by_type(EEZE_UDEV_TYPE_DRIVE_REMOVABLE, NULL);
+    Eina_List *l;
+    char *data;
+
+    EINA_LIST_FOREACH(devices, l, data) {
+        char buf[PATH_MAX];
+      
+	snprintf(buf, sizeof(buf), "%s/block", data);
+
+	DIR *dir = opendir(buf);
+	struct dirent *dh;
+	while (dh = readdir(dir)) {
+            if (dh->d_name[0] == '.') continue;
+	    char p[PATH_MAX];
+            snprintf(p, sizeof(p), "%s/%s", buf, dh->d_name);
+            struct stat fstats;
+	    stat(p, &fstats);
+	    if (S_ISDIR(fstats.st_mode)) {
+                char devpath[PATH_MAX];
+                snprintf(devpath, sizeof(devpath), "/dev/%s", dh->d_name);
+	        storage[disk_count++] = strdup(devpath);
+		break;
+	    }
+	}
+	closedir(dir); 
+    }
+
+    eina_list_free(devices);
+
+    eeze_shutdown();
 #endif   
+    storage[disk_count] = NULL;
 
     if (disk_count) {
         update_combobox_storage(combobox_dest);
