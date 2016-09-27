@@ -1,14 +1,13 @@
 TARGET = os2disk
 SRC_DIR=src
 
-PKGS=eeze elementary openssl
+PKGS=elementary openssl
 
 LIBS = 
 
-ifeq ($(OS),Windows_NT)
-	OS := WINDOWS=1
+ifeq ($(OS),Linux)
+	PKGS += eeze
 else
-	OS := UNIX=1
 endif
 
 FLAGS =  -g -ggdb3 $(shell pkg-config --libs --cflags $(PKGS))

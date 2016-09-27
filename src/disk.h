@@ -7,6 +7,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+#if defined(__linux__)
+#include <Eina.h>
+#include <Eeze.h>
+#include <Eeze_Disk.h>
+#endif
+
 #define MAX_DISKS 10
 char *storage[MAX_DISKS];
 

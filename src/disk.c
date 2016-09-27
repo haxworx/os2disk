@@ -1,8 +1,5 @@
 #include "disk.h"
 #include "ui.h"
-#include <Eina.h>
-#include <Eeze.h>
-#include <Eeze_Disk.h>
 
 void _clear_storage(void)
 {
