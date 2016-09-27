@@ -1,10 +1,15 @@
 #include "core.h"
 #include "ui.h"
 
+unsigned char result[SHA256_DIGEST_LENGTH] = { 0 };
+SHA256_CTX ctx;
+
 static Eina_Bool
 _data_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
 {
     Ecore_Con_Event_Url_Data *url_data = event_info;
+    SHA256_Update(&ctx, url_data->data, url_data->size);
+
     return EINA_TRUE;
 }
 
@@ -17,6 +22,20 @@ _complete_cb(void *data, int type EINA_UNUSED, void *event_info)
     ecore_con_url_free(handle);
     elm_progressbar_pulse(progressbar, EINA_FALSE);
     elm_object_disabled_set(bt_ok, EINA_FALSE);
+
+    SHA256_Final(result, &ctx);
+
+    int i;
+
+    char sha256[2 * SHA256_DIGEST_LENGTH + 1] = { 0 };
+
+    int j = 0;
+    for (i = 0; i < SHA256_DIGEST_LENGTH; i++) {
+        snprintf(&sha256[j], sizeof(sha256), "%02x", (unsigned int) result[i]);
+        j += 2;
+    } 
+
+    elm_object_text_set(sha256_label, sha256sum);
 
     return EINA_TRUE;
 }
@@ -51,6 +70,7 @@ ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
     ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _complete_cb, handle);
 
     ecore_con_url_get(handle); 
+    SHA256_Init(&ctx);
 
     elm_progressbar_pulse(progressbar, EINA_TRUE);
     elm_object_disabled_set(bt_ok, EINA_TRUE);
