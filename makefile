@@ -1,7 +1,7 @@
 TARGET = os2disk
 SRC_DIR=src
 
-PKGS=elementary openssl
+PKGS=ecore ecore-con elementary openssl eeze
 
 LIBS = 
 

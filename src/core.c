@@ -17,6 +17,59 @@ void Error(char *fmt, ...)
     exit(EXIT_FAILURE);
 }
 
+static Eina_Bool
+_data_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
+{
+    Ecore_Con_Event_Url_Data *url_data= event_info;
+
+   return EINA_TRUE;
+}
+
+static Eina_Bool
+_complete_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
+{
+    Ecore_Con_Event_Url_Complete *url_complete = event_info;
+    printf("here %d\n\n", url_complete->status);
+
+   return EINA_TRUE;
+}
+
+static Eina_Bool
+_progress_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
+{
+    Ecore_Con_Event_Url_Progress *url_progress = event_info;
+    printf("here %f\n\n", url_progress->down.now / url_progress->down.total);
+   return EINA_TRUE;
+}
+
+char *
+ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
+{
+    if (!ecore_con_url_pipeline_get()) {
+        ecore_con_url_pipeline_set(EINA_TRUE);
+    }
+
+    Ecore_Con_Url *handle = ecore_con_url_custom_new(remote_url, "GET");
+
+    int fd = open(local_uri,  O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    ecore_con_url_fd_set(handle, fd);
+
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_PROGRESS, _progress_cb, NULL);
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, _data_cb, NULL);
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _complete_cb, NULL);
+
+    puts("here!");
+    ecore_con_url_get(handle); 
+    puts("here!");
+
+    ecore_main_loop_begin();
+
+    close(fd);
+    ecore_con_url_free(handle);
+
+    return strdup("ahar");
+}
+
 char *host_from_url(char *a)
 {
     char *addr = strdup(a);

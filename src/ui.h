@@ -3,6 +3,7 @@
 
 #include <Elementary.h>
 #include <Ecore.h>
+#include <Ecore_Con.h>
 
 Ecore_Thread *thread;
 Ecore_Timer *timer;

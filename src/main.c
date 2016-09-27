@@ -17,6 +17,9 @@ EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
     ecore_init(); 
+    ecore_con_init();
+    ecore_con_url_init();
+
     elm_init(argc, argv);
 
     if (!system_get_disks()) {
@@ -27,7 +30,9 @@ elm_main(int argc, char **argv)
     elm_window_create();
 
     ecore_main_loop_begin();
-   
+    
+    ecore_con_url_shutdown();
+    ecore_con_shutdown();   
     ecore_shutdown();
     elm_shutdown();
 
