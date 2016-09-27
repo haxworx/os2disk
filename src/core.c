@@ -1,4 +1,60 @@
 #include "core.h"
+#include "ui.h"
+
+static Eina_Bool
+_data_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
+{
+    Ecore_Con_Event_Url_Data *url_data = event_info;
+    return EINA_TRUE;
+}
+
+static Eina_Bool
+_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
+{
+    Ecore_Con_Url *handle = data;
+    Ecore_Con_Event_Url_Complete *url_complete = event_info;
+
+    ecore_con_url_free(handle);
+    elm_progressbar_pulse(progressbar, EINA_FALSE);
+    elm_object_disabled_set(bt_ok, EINA_FALSE);
+
+    return EINA_TRUE;
+}
+
+static Eina_Bool
+_progress_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
+{
+    Ecore_Con_Event_Url_Progress *url_progress = event_info;
+
+    elm_progressbar_value_set(progressbar, (double) (url_progress->down.now / url_progress->down.total));
+    return EINA_TRUE;
+}
+
+void
+ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
+{
+    if (!ecore_con_url_pipeline_get()) {
+        ecore_con_url_pipeline_set(EINA_TRUE);
+    }
+
+    Ecore_Con_Url *handle = ecore_con_url_new(remote_url);
+
+    ecore_con_url_additional_header_add
+    (handle, "user-agent",
+    "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19");
+    
+    int fd = open(local_uri,  O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    ecore_con_url_fd_set(handle, fd);
+
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_PROGRESS, _progress_cb, NULL);
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, _data_cb, NULL);
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _complete_cb, handle);
+
+    ecore_con_url_get(handle); 
+
+    elm_progressbar_pulse(progressbar, EINA_TRUE);
+    elm_object_disabled_set(bt_ok, EINA_TRUE);
+}
 
 /* This is a fallback from ecore_con */
 /* Not done yet...! */
@@ -15,62 +71,6 @@ void Error(char *fmt, ...)
     fprintf(stderr, "Error: %s\n", buf);
 
     exit(EXIT_FAILURE);
-}
-
-static Eina_Bool
-_data_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
-{
-    Ecore_Con_Event_Url_Data *url_data= event_info;
-
-   return EINA_TRUE;
-}
-
-static Eina_Bool
-_complete_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
-{
-    Ecore_Con_Event_Url_Complete *url_complete = event_info;
-    printf("here %d\n\n", url_complete->status);
-
-   return EINA_TRUE;
-}
-
-static Eina_Bool
-_progress_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
-{
-    Ecore_Con_Event_Url_Progress *url_progress = event_info;
-    printf("here %f\n\n", url_progress->down.now / url_progress->down.total);
-   return EINA_TRUE;
-}
-
-char *
-ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
-{
-    if (!ecore_con_url_pipeline_get()) {
-        ecore_con_url_pipeline_set(EINA_TRUE);
-    }
-
-    Ecore_Con_Url *handle = ecore_con_url_new(remote_url);
-    ecore_con_url_additional_header_add
-    (handle, "user-agent",
-"Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19");
-    
-int fd = open(local_uri,  O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    ecore_con_url_fd_set(handle, fd);
-
-    ecore_event_handler_add(ECORE_CON_EVENT_URL_PROGRESS, _progress_cb, NULL);
-    ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, _data_cb, NULL);
-    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _complete_cb, NULL);
-
-    puts("here!");
-    ecore_con_url_get(handle); 
-    puts("here!");
-
-    ecore_main_loop_begin();
-
-    close(fd);
-    ecore_con_url_free(handle);
-
-    return strdup("ahar");
 }
 
 char *host_from_url(char *a)
