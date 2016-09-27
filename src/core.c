@@ -3,7 +3,6 @@
 
 /* This uses ecore_con as the engine...*/
 
-unsigned char result[SHA256_DIGEST_LENGTH] = { 0 };
 SHA256_CTX ctx;
 
 static Eina_Bool
@@ -25,6 +24,7 @@ _complete_cb(void *data, int type EINA_UNUSED, void *event_info)
     elm_progressbar_pulse(progressbar, EINA_FALSE);
     elm_object_disabled_set(bt_ok, EINA_FALSE);
 
+    unsigned char result[SHA256_DIGEST_LENGTH] = { 0 };
     SHA256_Final(result, &ctx);
 
     int i;
@@ -72,6 +72,7 @@ ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
     ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _complete_cb, handle);
 
     ecore_con_url_get(handle); 
+    
     SHA256_Init(&ctx);
 
     elm_progressbar_pulse(progressbar, EINA_TRUE);
