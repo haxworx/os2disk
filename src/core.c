@@ -49,9 +49,12 @@ ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
         ecore_con_url_pipeline_set(EINA_TRUE);
     }
 
-    Ecore_Con_Url *handle = ecore_con_url_custom_new(remote_url, "GET");
-
-    int fd = open(local_uri,  O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    Ecore_Con_Url *handle = ecore_con_url_new(remote_url);
+    ecore_con_url_additional_header_add
+    (handle, "user-agent",
+"Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19");
+    
+int fd = open(local_uri,  O_CREAT | O_WRONLY | O_TRUNC, 0644);
     ecore_con_url_fd_set(handle, fd);
 
     ecore_event_handler_add(ECORE_CON_EVENT_URL_PROGRESS, _progress_cb, NULL);

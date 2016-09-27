@@ -185,10 +185,8 @@ _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
    if (!remote_url) return;
    if (!local_url) return;
 
-   /*
    ecore_os_fetch_and_write(remote_url, local_url);
    return; 
-   */
 
    elm_object_disabled_set(obj, EINA_TRUE);
    elm_progressbar_pulse(progressbar, EINA_TRUE);
