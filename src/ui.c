@@ -206,6 +206,11 @@ void elm_window_create(void)
     elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
     Evas_Object *win = elm_win_util_standard_add("os2drive", "OS2disk");
 
+    Evas_Object *icon = evas_object_image_add(evas_object_evas_get(win));
+    evas_object_image_file_set(icon, "images/icon.ico", NULL);
+    elm_win_icon_object_set(win, icon);
+    evas_object_show(icon);
+
     Evas_Object *box = elm_box_add(win);
     evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     elm_win_resize_object_add(win, box);
