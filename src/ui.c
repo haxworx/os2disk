@@ -145,7 +145,6 @@ static void
 thread_feedback(void *data, Ecore_Thread *thread, void *msg)
 {
     int *c = msg;
-//    printf("here is progress is %d\n\n", *c);
 
     elm_progressbar_value_set(progressbar, (double) *c / 10000);
 
