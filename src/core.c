@@ -5,6 +5,8 @@
 
 SHA256_CTX ctx;
 
+// FIXME: this isn't being called
+// using legacy engine
 static Eina_Bool
 _data_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
 {
