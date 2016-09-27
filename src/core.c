@@ -1,6 +1,8 @@
 #include "core.h"
 #include "ui.h"
 
+/* This uses ecore_con as the engine...*/
+
 unsigned char result[SHA256_DIGEST_LENGTH] = { 0 };
 SHA256_CTX ctx;
 
@@ -35,7 +37,7 @@ _complete_cb(void *data, int type EINA_UNUSED, void *event_info)
         j += 2;
     } 
 
-    elm_object_text_set(sha256_label, sha256sum);
+    elm_object_text_set(sha256_label, sha256);
 
     return EINA_TRUE;
 }
@@ -76,8 +78,7 @@ ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
     elm_object_disabled_set(bt_ok, EINA_TRUE);
 }
 
-/* This is a fallback from ecore_con */
-/* Not done yet...! */
+/* This is a fallback engine */
 
 void Error(char *fmt, ...)
 {
