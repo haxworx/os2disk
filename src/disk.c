@@ -52,6 +52,8 @@ skip:
     }
     storage[disk_count] = NULL;
 #else 
+    // FIXME: detect disks Linux
+    storage[0] = strdup("/dev/sdb");
     storage[0] = strdup("/dev/mmcblk1");
     storage[1] = NULL;
 #endif   

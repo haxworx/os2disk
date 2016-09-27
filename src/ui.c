@@ -147,7 +147,7 @@ thread_feedback(void *data, Ecore_Thread *thread, void *msg)
     int *c = msg;
 //    printf("here is progress is %d\n\n", *c);
 
-    elm_progressbar_value_set(progressbar, (double) *c / 100);
+    elm_progressbar_value_set(progressbar, (double) *c / 10000);
 
     free(c);
 }
@@ -174,7 +174,7 @@ _bt_cancel_clicked_cb(void *data, Evas_Object *obj, void *event)
         ecore_timer_del(timer);
     }
     
-    //while((ecore_thread_wait(thread, 0.1)) != EINA_TRUE);
+    while((ecore_thread_wait(thread, 0.1)) != EINA_TRUE);
 
     elm_exit();
 }

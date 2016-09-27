@@ -264,7 +264,7 @@ os_fetch_and_write(Ecore_Thread *thread, const char *remote_url, const char *loc
     ssize_t bytes = 0;
     int total = 0; 
 
-    int percent = length / 100;
+    int percent = length / 10000;
 
     if (bio) {
         BIO_read(bio, buf, 1);
