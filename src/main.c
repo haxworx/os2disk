@@ -16,6 +16,8 @@ system_check_changes(void *data)
     return ECORE_CALLBACK_RENEW;
 }
 
+Win_Main_Widgets *ui = NULL;
+
 EAPI_MAIN int
 elm_main(int argc, char **argv)
 {

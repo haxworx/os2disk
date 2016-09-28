@@ -1,6 +1,8 @@
 #include "disk.h"
 #include "ui.h"
 
+extern Win_Main_Widgets *ui;
+
 void _clear_storage(void)
 {
     int i;
@@ -84,10 +86,9 @@ skip:
     eeze_shutdown();
 #endif   
     storage[disk_count] = NULL;
-
     if (disk_count) {
         if (ui) {
-            update_combobox_storage(ui->combobox_dest);
+            update_combobox_storage();
         }
     }
  

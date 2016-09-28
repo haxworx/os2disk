@@ -1,6 +1,8 @@
 #include "core.h"
 #include "ui.h"
 
+extern Win_Main_Widgets *ui;
+
 /* This uses ecore_con as the engine...*/
 
 SHA256_CTX ctx;

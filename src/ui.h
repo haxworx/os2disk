@@ -26,8 +26,6 @@ struct Win_Main_Widgets {
     char *sha256sum;
 };
 
-static Win_Main_Widgets *ui = NULL;
-
 typedef struct distro_t distro_t;
 struct distro_t {
     char *name;
@@ -35,7 +33,7 @@ struct distro_t {
 };
 
 Win_Main_Widgets *elm_window_create(void);
-void update_combobox_storage(Evas_Object *combobox);
+void update_combobox_storage(void);
 
 static distro_t distrbibutions[];
 

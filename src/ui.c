@@ -2,6 +2,8 @@
 #include "core.h"
 #include "disk.h"
 
+extern Win_Main_Widgets *ui;
+
 static distro_t distributions[] = {
     {"Debian GNU/Linux v8.6 (i386/amd64)", "http://debian.inode.at/debian-cd/8.6.0/multi-arch/iso-cd/debian-8.6.0-amd64-i386-netinst.iso"},
     {"FreeBSD v10.3 (x86)", "http://ftp.freebsd.org/pub/FreeBSD/releases/ISO-IMAGES/10.3/FreeBSD-10.3-RELEASE-i386-memstick.img"},
@@ -33,21 +35,20 @@ gl_text_dest_get(void *data, Evas_Object *obj EINA_UNUSED, const char *part EINA
 }
 
 void
-update_combobox_storage(Evas_Object *combobox)
+update_combobox_storage(void)
 {
     int i;
-
     Elm_Genlist_Item_Class *itc;
     itc = elm_genlist_item_class_new();
     itc->item_style = "default";
     itc->func.text_get = gl_text_dest_get;
     
-    elm_genlist_clear(combobox);
+    elm_genlist_clear(ui->combobox_dest);
      
     for (i = 0; storage[i] != NULL; i++) {
-        elm_genlist_item_append(combobox, itc, (void *) (uintptr_t) i,
+        elm_genlist_item_append(ui->combobox_dest, itc, (void *) (uintptr_t) i,
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
-        Elm_Object_Item *item = elm_genlist_first_item_get(combobox);
+        Elm_Object_Item *item = elm_genlist_first_item_get(ui->combobox_dest);
 	elm_genlist_item_show(item, ELM_GENLIST_ITEM_SCROLLTO_TOP);
     } 
 
