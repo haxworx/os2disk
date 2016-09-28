@@ -23,8 +23,8 @@ _complete_cb(void *data, int type EINA_UNUSED, void *event_info)
     Ecore_Con_Event_Url_Complete *url_complete = event_info;
 
     ecore_con_url_free(handle);
-    elm_progressbar_pulse(window->progressbar, EINA_FALSE);
-    elm_object_disabled_set(window->bt_ok, EINA_FALSE);
+    elm_progressbar_pulse(ui->progressbar, EINA_FALSE);
+    elm_object_disabled_set(ui->bt_ok, EINA_FALSE);
 
     unsigned char result[SHA256_DIGEST_LENGTH] = { 0 };
     SHA256_Final(result, &ctx);
@@ -39,7 +39,7 @@ _complete_cb(void *data, int type EINA_UNUSED, void *event_info)
         j += 2;
     } 
 
-    elm_object_text_set(window->sha256_label, sha256);
+    elm_object_text_set(ui->sha256_label, sha256);
 
     return EINA_TRUE;
 }
@@ -49,7 +49,7 @@ _progress_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
 {
     Ecore_Con_Event_Url_Progress *url_progress = event_info;
 
-    elm_progressbar_value_set(window->progressbar, (double) (url_progress->down.now / url_progress->down.total));
+    elm_progressbar_value_set(ui->progressbar, (double) (url_progress->down.now / url_progress->down.total));
     return EINA_TRUE;
 }
 
@@ -77,8 +77,8 @@ ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
     
     SHA256_Init(&ctx);
 
-    elm_progressbar_pulse(window->progressbar, EINA_TRUE);
-    elm_object_disabled_set(window->bt_ok, EINA_TRUE);
+    elm_progressbar_pulse(ui->progressbar, EINA_TRUE);
+    elm_object_disabled_set(ui->bt_ok, EINA_TRUE);
 }
 
 /* This is a fallback engine */

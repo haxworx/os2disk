@@ -26,7 +26,7 @@ struct Win_Main_Widgets {
     char *sha256sum;
 };
 
-static Win_Main_Widgets *window = NULL;
+static Win_Main_Widgets *ui = NULL;
 
 typedef struct distro_t distro_t;
 struct distro_t {

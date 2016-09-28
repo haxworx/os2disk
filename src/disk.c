@@ -86,8 +86,8 @@ skip:
     storage[disk_count] = NULL;
 
     if (disk_count) {
-        if (window) {
-            update_combobox_storage(window->combobox_dest);
+        if (ui) {
+            update_combobox_storage(ui->combobox_dest);
         }
     }
  
