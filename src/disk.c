@@ -1,7 +1,7 @@
 #include "disk.h"
 #include "ui.h"
 
-extern Win_Main_Widgets *ui;
+extern Ui_Main_Contents *ui;
 
 void _clear_storage(void)
 {

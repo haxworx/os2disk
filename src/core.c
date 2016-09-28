@@ -1,7 +1,7 @@
 #include "core.h"
 #include "ui.h"
 
-extern Win_Main_Widgets *ui;
+extern Ui_Main_Contents *ui;
 
 /* This uses ecore_con as the engine...*/
 

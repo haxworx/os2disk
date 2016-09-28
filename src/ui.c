@@ -2,7 +2,7 @@
 #include "core.h"
 #include "disk.h"
 
-extern Win_Main_Widgets *ui;
+extern Ui_Main_Contents *ui;
 
 static distro_t distributions[] = {
     {"Debian GNU/Linux v8.6 (i386/amd64)", "http://debian.inode.at/debian-cd/8.6.0/multi-arch/iso-cd/debian-8.6.0-amd64-i386-netinst.iso"},
@@ -200,10 +200,10 @@ _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
 }
 
 
-Win_Main_Widgets *elm_window_create(void)
+Ui_Main_Contents *elm_window_create(void)
 {
     int i;
-    ui = malloc(sizeof(Win_Main_Widgets));
+    ui = malloc(sizeof(Ui_Main_Contents));
 
     elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
     ui->win = elm_win_util_standard_add("os2drive", "OS2disk");

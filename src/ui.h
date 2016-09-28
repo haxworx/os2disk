@@ -11,8 +11,8 @@ static char *local_url = NULL;
 Ecore_Thread *thread;
 Ecore_Timer *timer;
 
-typedef struct Win_Main_Widgets Win_Main_Widgets;
-struct Win_Main_Widgets { 
+typedef struct _Ui_Main_Contents Ui_Main_Contents;
+struct _Ui_Main_Contents { 
     Evas_Object *win;
     Evas_Object *icon;
     Evas_Object *box;
@@ -32,7 +32,7 @@ struct distro_t {
     char *url;
 };
 
-Win_Main_Widgets *elm_window_create(void);
+Ui_Main_Contents *elm_window_create(void);
 void update_combobox_storage(void);
 
 static distro_t distrbibutions[];
