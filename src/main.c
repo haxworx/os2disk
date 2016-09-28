@@ -1,5 +1,8 @@
 #include "ui.h"
 
+
+// FIXME: Get distributions from remote URL list.
+
 Eina_Bool
 system_check_changes(void *data)
 {
