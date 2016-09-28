@@ -86,7 +86,9 @@ skip:
     storage[disk_count] = NULL;
 
     if (disk_count) {
-        update_combobox_storage(window->combobox_dest);
+        if (window) {
+            update_combobox_storage(window->combobox_dest);
+        }
     }
  
     return disk_count;

@@ -20,6 +20,8 @@ elm_main(int argc, char **argv)
     ecore_con_init();
     ecore_con_url_init();
 
+    window = NULL;
+
     elm_init(argc, argv);
 
     if (!system_get_disks()) {

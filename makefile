@@ -1,8 +1,8 @@
 TARGET = os2disk
 SRC_DIR=src
 
-PKGS=ecore ecore-con elementary openssl eeze
-
+PKGS=ecore ecore-con elementary openssl 
+# eeze
 LIBS = 
 
 ifeq ($(OS),Linux)
@@ -10,6 +10,7 @@ ifeq ($(OS),Linux)
 else
 endif
 
+CFLAGS= -g -ggdb3
 FLAGS =  -g -ggdb3 $(shell pkg-config --libs --cflags $(PKGS))
 INCLUDES = $(shell pkg-config --cflags $(PKGS))
 
@@ -19,16 +20,16 @@ $(TARGET) : $(OBJECTS)
 	$(CC) $(FLAGS) $(OBJECTS) $(FLAGS) -o $@
 
 main.o: $(SRC_DIR)/main.c
-	$(CC) $(INCLUDES) -c $(SRC_DIR)/main.c -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(SRC_DIR)/main.c -o $@
 
 core.o: $(SRC_DIR)/core.c
-	$(CC) $(INCLUDES) -c $(SRC_DIR)/core.c -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(SRC_DIR)/core.c -o $@
 
 disks.o:$(SRC_DIR)/disk.c
-	$(CC) $(INCLUDES) -c $(SRC_DIR)/disk.c -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(SRC_DIR)/disk.c -o $@
 
 ui.o: $(SRC_DIR)/ui.c
-	$(CC) $(INCLUDES) -c $(SRC_DIR)/ui.c -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(SRC_DIR)/ui.c -o $@
 
 clean:
 	-rm $(OBJECTS) $(TARGET)
