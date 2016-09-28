@@ -52,7 +52,7 @@ update_combobox_storage(Evas_Object *combobox)
     } 
 
     if (i) {
-        elm_object_part_text_set(combobox_dest, "guide", "destination...");
+        elm_object_part_text_set(window->combobox_dest, "guide", "destination...");
     }
 }
 
@@ -120,7 +120,7 @@ static void
 thread_do(void *data, Ecore_Thread *thread)
 {
     int count = 0;
-    sha256sum = os_fetch_and_write(thread, remote_url, local_url);
+    window->sha256sum = os_fetch_and_write(thread, remote_url, local_url);
 
     if (ecore_thread_check(thread)) {
        return;
@@ -130,14 +130,13 @@ thread_do(void *data, Ecore_Thread *thread)
 static void
 thread_end(void *data, Ecore_Thread *thread)
 {
-    if (sha256sum) {
-        elm_object_text_set(sha256_label,sha256sum);
-        printf("it is %s\n", sha256sum);
-        free(sha256sum);
+    if (window->sha256sum) {
+        elm_object_text_set(window->sha256_label, window->sha256sum);
+        free(window->sha256sum);
     }
 
-    elm_object_disabled_set(bt_ok, EINA_FALSE);
-    elm_progressbar_pulse(progressbar, EINA_FALSE);
+    elm_object_disabled_set(window->bt_ok, EINA_FALSE);
+    elm_progressbar_pulse(window->progressbar, EINA_FALSE);
     while((ecore_thread_wait(thread, 0.1)) != EINA_TRUE);
 }
 
@@ -146,7 +145,7 @@ thread_feedback(void *data, Ecore_Thread *thread, void *msg)
 {
     int *c = msg;
 
-    elm_progressbar_value_set(progressbar, (double) *c / 10000);
+    elm_progressbar_value_set(window->progressbar, (double) *c / 10000);
 
     free(c);
 }
@@ -191,8 +190,8 @@ _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
    return; 
    */
 
-   elm_object_disabled_set(obj, EINA_TRUE);
-   elm_progressbar_pulse(progressbar, EINA_TRUE);
+   elm_object_disabled_set(window->bt_ok, EINA_TRUE);
+   elm_progressbar_pulse(window->progressbar, EINA_TRUE);
 
    printf("remote: %s and local: %s\n", remote_url, local_url);
    thread = ecore_thread_feedback_run(thread_do, thread_feedback, thread_end, thread_cancel,
@@ -200,28 +199,29 @@ _bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
 }
 
 
-void elm_window_create(void)
+Win_Main_Widgets *elm_window_create(void)
 {
     int i;
+    window = malloc(sizeof(Win_Main_Widgets));
 
     elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
-    Evas_Object *win = elm_win_util_standard_add("os2drive", "OS2disk");
+    window->win = elm_win_util_standard_add("os2drive", "OS2disk");
 
-    Evas_Object *icon = evas_object_image_add(evas_object_evas_get(win));
-    evas_object_image_file_set(icon, "images/icon.ico", NULL);
-    elm_win_icon_object_set(win, icon);
-    evas_object_show(icon);
+    window->icon = evas_object_image_add(evas_object_evas_get(window->win));
+    evas_object_image_file_set(window->icon, "images/icon.ico", NULL);
+    elm_win_icon_object_set(window->win, window->icon);
+    evas_object_show(window->icon);
 
-    Evas_Object *box = elm_box_add(win);
-    evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    elm_win_resize_object_add(win, box);
-    evas_object_show(box);
+    window->box = elm_box_add(window->win);
+    evas_object_size_hint_weight_set(window->box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    elm_win_resize_object_add(window->win, window->box);
+    evas_object_show(window->box);
 
-    Evas_Object *combobox_source = elm_combobox_add(win);
-    evas_object_size_hint_weight_set(combobox_source, EVAS_HINT_EXPAND, 0);
-    evas_object_size_hint_align_set(combobox_source, EVAS_HINT_FILL, 0);
-    elm_object_part_text_set(combobox_source, "guide", "source...");
-    elm_box_pack_end(box, combobox_source);
+    window->combobox_source = elm_combobox_add(window->win);
+    evas_object_size_hint_weight_set(window->combobox_source, EVAS_HINT_EXPAND, 0);
+    evas_object_size_hint_align_set(window->combobox_source, EVAS_HINT_FILL, 0);
+    elm_object_part_text_set(window->combobox_source, "guide", "source...");
+    elm_box_pack_end(window->box, window->combobox_source);
 
     Elm_Genlist_Item_Class *itc;
     itc = elm_genlist_item_class_new();
@@ -229,24 +229,24 @@ void elm_window_create(void)
     itc->func.text_get = gl_text_get;
 
     for (i = 0; distributions[i].name != NULL; i++)
-        elm_genlist_item_append(combobox_source, itc, (void *) (uintptr_t) i,
+        elm_genlist_item_append(window->combobox_source, itc, (void *) (uintptr_t) i,
                 NULL, ELM_GENLIST_ITEM_NONE, NULL,
                 (void *) (uintptr_t) i);
 
-    evas_object_smart_callback_add(combobox_source, "item,pressed",
+    evas_object_smart_callback_add(window->combobox_source, "item,pressed",
                                   _combobox_item_pressed_cb, NULL);
 
-    Elm_Object_Item *item = elm_genlist_first_item_get(combobox_source);
+    Elm_Object_Item *item = elm_genlist_first_item_get(window->combobox_source);
     elm_genlist_item_show(item, ELM_GENLIST_ITEM_SCROLLTO_TOP);
     elm_genlist_item_bring_in(item, ELM_GENLIST_ITEM_SCROLLTO_TOP);
-    evas_object_show(combobox_source);
+    evas_object_show(window->combobox_source);
 
-    combobox_dest = elm_combobox_add(win);
-    evas_object_size_hint_weight_set(combobox_dest, EVAS_HINT_EXPAND, 0);
-    evas_object_size_hint_align_set(combobox_dest, EVAS_HINT_FILL, 0);
-    elm_object_part_text_set(combobox_dest, "guide", "destination...");
-    elm_box_pack_end(box, combobox_dest);
-    evas_object_show(combobox_dest);
+    window->combobox_dest = elm_combobox_add(window->win);
+    evas_object_size_hint_weight_set(window->combobox_dest, EVAS_HINT_EXPAND, 0);
+    evas_object_size_hint_align_set(window->combobox_dest, EVAS_HINT_FILL, 0);
+    elm_object_part_text_set(window->combobox_dest, "guide", "destination...");
+    elm_box_pack_end(window->box, window->combobox_dest);
+    evas_object_show(window->combobox_dest);
 
 
     itc = elm_genlist_item_class_new();
@@ -254,53 +254,55 @@ void elm_window_create(void)
     itc->func.text_get = gl_text_dest_get;
 
     for (i = 0; storage[i] != NULL; i++)
-        elm_genlist_item_append(combobox_dest, itc, (void *) (uintptr_t) i,
+        elm_genlist_item_append(window->combobox_dest, itc, (void *) (uintptr_t) i,
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
 
-    evas_object_smart_callback_add(combobox_dest, "item,pressed",
+    evas_object_smart_callback_add(window->combobox_dest, "item,pressed",
                                   _combobox2_item_pressed_cb, NULL);
-    progressbar= elm_progressbar_add(win);
-    evas_object_size_hint_align_set(progressbar, EVAS_HINT_FILL, 0.5);
-    evas_object_size_hint_weight_set(progressbar, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    elm_progressbar_pulse_set(progressbar, EINA_TRUE);
-    elm_progressbar_span_size_set(progressbar, 1.0);
-    elm_progressbar_unit_format_set(progressbar, "%1.2f%%");
-    elm_box_pack_end(box, progressbar);
-    evas_object_show(progressbar);
+    window->progressbar= elm_progressbar_add(window->win);
+    evas_object_size_hint_align_set(window->progressbar, EVAS_HINT_FILL, 0.5);
+    evas_object_size_hint_weight_set(window->progressbar, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    elm_progressbar_pulse_set(window->progressbar, EINA_TRUE);
+    elm_progressbar_span_size_set(window->progressbar, 1.0);
+    elm_progressbar_unit_format_set(window->progressbar, "%1.2f%%");
+    elm_box_pack_end(window->box, window->progressbar);
+    evas_object_show(window->progressbar);
 
-    sha256_label = elm_label_add(win);
-    elm_box_pack_end(box, sha256_label);
-    evas_object_size_hint_align_set(sha256_label, 0.5, EVAS_HINT_FILL);
-    evas_object_show(sha256_label);
+    window->sha256_label = elm_label_add(window->win);
+    elm_box_pack_end(window->box, window->sha256_label);
+    evas_object_size_hint_align_set(window->sha256_label, 0.5, EVAS_HINT_FILL);
+    evas_object_show(window->sha256_label);
 
-    Evas_Object *table = elm_table_add(win);
-    elm_box_pack_end(box, table);
-    evas_object_show(table);
+    window->table = elm_table_add(window->win);
+    elm_box_pack_end(window->box, window->table);
+    evas_object_show(window->table);
 
-    bt_ok = elm_button_add(win);
-    elm_object_text_set(bt_ok, "Write");
-    evas_object_show(bt_ok);
-    elm_table_pack(table, bt_ok, 0, 0, 1, 1);
+    window->bt_ok = elm_button_add(window->win);
+    elm_object_text_set(window->bt_ok, "Write");
+    evas_object_show(window->bt_ok);
+    elm_table_pack(window->table, window->bt_ok, 0, 0, 1, 1);
 
-    evas_object_smart_callback_add(bt_ok, "clicked", _bt_clicked_cb, NULL);
+    evas_object_smart_callback_add(window->bt_ok, "clicked", _bt_clicked_cb, NULL);
 
-    Evas_Object *bt_cancel = elm_button_add(win);
-    elm_object_text_set(bt_cancel, "Cancel");
-    evas_object_show(bt_cancel);
-    elm_table_pack(table, bt_cancel, 1, 0, 1, 1);
+    window->bt_cancel = elm_button_add(window->win);
+    elm_object_text_set(window->bt_cancel, "Cancel");
+    evas_object_show(window->bt_cancel);
+    elm_table_pack(window->table, window->bt_cancel, 1, 0, 1, 1);
 
-    evas_object_smart_callback_add(bt_cancel, "clicked", _bt_cancel_clicked_cb, NULL);
+    evas_object_smart_callback_add(window->bt_cancel, "clicked", _bt_cancel_clicked_cb, NULL);
 
-    evas_object_resize(win, 400,100);
+    evas_object_resize(window->win, 400,100);
 
     uid_t euid = geteuid();
     if (euid != 0) {
-        error_popup(win);
+        error_popup(window->win);
     }
 
-    evas_object_show(win);
+    evas_object_show(window->win);
 
-    evas_object_smart_callback_add(win, "delete,request", win_del, NULL);
+    evas_object_smart_callback_add(window->win, "delete,request", win_del, NULL);
+ 
+    return window;
 }
 
 

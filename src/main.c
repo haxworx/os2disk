@@ -27,7 +27,7 @@ elm_main(int argc, char **argv)
         timer = ecore_timer_add(3.0, system_check_changes, NULL);
     }
 
-    elm_window_create();
+    window = elm_window_create();
 
     ecore_main_loop_begin();
     
