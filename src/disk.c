@@ -24,6 +24,7 @@ int system_get_disks(void)
 #if defined(__OpenBSD__)
     static const mib[] = { CTL_HW, HW_DISKNAMES };
     static const unsigned int miblen = 2;
+    char buf[128];
     char *drives;
     size_t len;
 
@@ -32,26 +33,44 @@ int system_get_disks(void)
     if (!len) return;
 
     drives = calloc(1, len + 1);
+    if (!drives) {
+        return 0;
+    }
 
     sysctl(mib, miblen, drives, &len, NULL, 0);
 
-    char buf[128];
     char *s = drives;
     while (s) {
         char *end = strchr(s, ':');
+        if (!end) { 
+            break;
+        }        
+      
         *end = '\0';
-        end++;
-        if (s[0] == ',') s++;
-        if (!s) break;
-        if (!strcmp(s, "sd0")) goto skip;
-        if (!strcmp(s, "hd0")) goto skip;
-        if (!strncmp(s, "cd", 2)) goto skip;
+ 
+        /* Do not expose common drives */       
+        if (!strcmp(s, "sd0") || !strcmp(s, "hd0") ||
+            !strncmp(s, "cd", 2)) {
+            goto skip;
+        }
+
+        if (s[0] == ',') {
+            s++;
+        }
+
         snprintf(buf, sizeof(buf), "/dev/%sc", s);
         printf("buffer: %s\n\n", buf);
         storage[disk_count++] = strdup(buf);
 skip:
+        end++;
         s = strchr(end, ',');
+        if (!s) {
+            break;
+        }
     }
+
+    free(drives);
+
 #else 
     eeze_init();
     Eina_List *devices = eeze_udev_find_by_type(EEZE_UDEV_TYPE_DRIVE_REMOVABLE, NULL);
