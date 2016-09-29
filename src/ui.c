@@ -4,6 +4,7 @@
 
 extern Ui_Main_Contents *ui;
 
+
 static char *
 gl_text_get(void *data, Evas_Object *obj EINA_UNUSED, const char *part EINA_UNUSED)
 {
@@ -30,27 +31,6 @@ gl_filter_get(void *data, Evas_Object *obj EINA_UNUSED, void *key)
     if (strlen((char *) key)) return EINA_TRUE;
 
     return EINA_TRUE;
-}
-
-void 
-update_combobox_source(void)
-{
-    int i;
-
-    Elm_Genlist_Item_Class *itc;
-    itc = elm_genlist_item_class_new();
-    itc->item_style = "default";
-    itc->func.text_get = gl_text_get;
-    
-    for (i = 0; distributions[i] != NULL; i++) {
-        elm_genlist_item_append(ui->combobox_source, itc, (void *) (uintptr_t) i,
-                NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
-    }
-
-    if (i) {
-          elm_object_part_text_set(ui->combobox_source, "guide", "source...");
-          elm_genlist_realized_items_update(ui->combobox_source);
-    }
 }
 
 void
@@ -107,6 +87,7 @@ _combobox_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
                       void *event_info)
 {
     char buf[256];
+          elm_genlist_realized_items_update(ui->combobox_source);
     const char *txt = elm_object_item_text_get(event_info);
     int i = (int)(uintptr_t) elm_object_item_data_get(event_info);
 
@@ -241,8 +222,17 @@ Ui_Main_Contents *elm_window_create(void)
     //elm_object_part_text_set(ui->combobox_source, "guide", "source...");
     elm_box_pack_end(ui->box, ui->combobox_source);
 
+    Elm_Genlist_Item_Class *itc = elm_genlist_item_class_new();
+    itc->item_style = "default";
+    itc->func.text_get = gl_text_get;
+    
+    for (i = 0; distributions[i] != NULL; i++)
+        elm_genlist_item_append(ui->combobox_source, itc, (void *) (uintptr_t) i,
+                NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
+
     evas_object_smart_callback_add(ui->combobox_source, "item,pressed",
-                                  _combobox_item_pressed_cb, NULL);
+                                     _combobox_item_pressed_cb, NULL);
+
     evas_object_show(ui->combobox_source);
 
     ui->combobox_dest = elm_combobox_add(ui->win);
@@ -253,12 +243,12 @@ Ui_Main_Contents *elm_window_create(void)
     evas_object_show(ui->combobox_dest);
 
 
-    Elm_Genlist_Item_Class *itc = elm_genlist_item_class_new();
-    itc->item_style = "default";
-    itc->func.text_get = gl_text_dest_get;
+    Elm_Genlist_Item_Class *itc2 = elm_genlist_item_class_new();
+    itc2->item_style = "default";
+    itc2->func.text_get = gl_text_dest_get;
 
     for (i = 0; storage[i] != NULL; i++)
-        elm_genlist_item_append(ui->combobox_dest, itc, (void *) (uintptr_t) i,
+        elm_genlist_item_append(ui->combobox_dest, itc2, (void *) (uintptr_t) i,
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
 
     evas_object_smart_callback_add(ui->combobox_dest, "item,pressed",

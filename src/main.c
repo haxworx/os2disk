@@ -33,7 +33,7 @@ elm_main(int argc, char **argv)
 
     get_distribution_list();
 
-    ui = elm_window_create();
+    //ui = elm_window_create();
     ecore_main_loop_begin();
     
     ecore_con_url_shutdown();

@@ -33,6 +33,8 @@ populate_list(void)
         start = end + 1;
     }
 
+    ui = elm_window_create();
+
     distributions[count] = NULL;
 }
 
@@ -65,12 +67,12 @@ _list_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
     Ecore_Con_Event_Url_Complete *url_complete = event_info;
     Ecore_Con_Url *h = data;
     printf("STATUS %d\n\n",  url_complete->status);
-    populate_list();
-    update_combobox_source();
 
     ecore_event_handler_del(handle->add);
     ecore_event_handler_del(handle->complete);
     ecore_con_url_free(handle->h);
+    
+    populate_list();
 }
 
 Eina_Bool
@@ -186,8 +188,9 @@ ecore_www_file_save(const char *remote_url, const char *local_uri)
     elm_object_disabled_set(ui->bt_ok, EINA_TRUE);
 }
 
-/* This is a fallback engine */
-
+/* This engine is a threaded fallback engine.
+ *  It works quite well and I wish to leave it here as an example.
+*/
 void 
 Error(char *fmt, ...)
 {
