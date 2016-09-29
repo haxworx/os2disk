@@ -33,9 +33,9 @@ populate_list(void)
         start = end + 1;
     }
 
-    ui = elm_window_create();
-
     distributions[count] = NULL;
+
+    ui = elm_window_create();
 }
 
 typedef struct _handler_t handle_t;
@@ -56,6 +56,7 @@ _list_data_cb(void *data, int type EINA_UNUSED, void *event_info)
     for (i = 0; i < url_data->size; i++) {
         buf[i] = url_data->data[i];
     }
+
     total += url_data->size;
 }
 
@@ -63,10 +64,12 @@ static Eina_Bool
 _list_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
 {
     handle_t *handle = data;
-
     Ecore_Con_Event_Url_Complete *url_complete = event_info;
-    Ecore_Con_Url *h = data;
-    printf("STATUS %d\n\n",  url_complete->status);
+
+    if (url_complete->status != 200) {
+        fprintf(stderr, "Error: retrieving remote list of images\n\n");
+        exit(1 << 7); 
+    }
 
     ecore_event_handler_del(handle->add);
     ecore_event_handler_del(handle->complete);
@@ -175,8 +178,14 @@ ecore_www_file_save(const char *remote_url, const char *local_uri)
     SHA256_Init(&ctx);
 
     Ecore_Con_Url *handle = ecore_con_url_new(remote_url);
+    if (!handle) {
+        return;
+    }
 
     fd = open(local_uri,  O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd == -1) {
+        return;
+    }
 
     ecore_event_handler_add(ECORE_CON_EVENT_URL_PROGRESS, _download_progress_cb, NULL);
     ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, _download_data_cb, NULL);

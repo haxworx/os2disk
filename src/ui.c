@@ -75,15 +75,11 @@ void error_popup(Evas_Object *win)
     evas_object_smart_callback_add(popup, "block,clicked", NULL, NULL);
 
     evas_object_show(win);
-
-    elm_run();
-
-    exit(1); 
 }
 
 
 static void
-_combobox_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
+_combobox_source_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
                       void *event_info)
 {
     char buf[256];
@@ -102,7 +98,7 @@ _combobox_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
 
 
 static void
-_combobox2_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
+_combobox_storage_item_pressed_cb(void *data EINA_UNUSED, Evas_Object *obj,
                       void *event_info)
 {
     char buf[256];
@@ -184,11 +180,12 @@ _bt_clicked_cb(void *data EINA_UNUSED, Evas_Object *obj, void *event EINA_UNUSED
    if (!remote_url) return;
    if (!local_url) return;
 
-  printf("local: %s and remote: %s\n\n", remote_url, local_url);
+   printf("remote: %s and local: %s\n\n", remote_url, local_url);
    ecore_www_file_save(remote_url, local_url);
 
    return; 
-    
+   
+   /* CANNOT REACH: this is the fallback engine */ 
 
    elm_object_disabled_set(ui->bt_ok, EINA_TRUE);
    elm_progressbar_pulse(ui->progressbar, EINA_TRUE);
@@ -196,6 +193,7 @@ _bt_clicked_cb(void *data EINA_UNUSED, Evas_Object *obj, void *event EINA_UNUSED
    thread = ecore_thread_feedback_run(thread_do, thread_feedback, thread_end, thread_cancel,
                                         NULL, EINA_FALSE);
 }
+
 
 
 Ui_Main_Contents *elm_window_create(void)
@@ -219,7 +217,6 @@ Ui_Main_Contents *elm_window_create(void)
     ui->combobox_source = elm_combobox_add(ui->win);
     evas_object_size_hint_weight_set(ui->combobox_source, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(ui->combobox_source, EVAS_HINT_FILL, 0);
-    //elm_object_part_text_set(ui->combobox_source, "guide", "source...");
     elm_box_pack_end(ui->box, ui->combobox_source);
 
     Elm_Genlist_Item_Class *itc = elm_genlist_item_class_new();
@@ -231,7 +228,7 @@ Ui_Main_Contents *elm_window_create(void)
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
 
     evas_object_smart_callback_add(ui->combobox_source, "item,pressed",
-                                     _combobox_item_pressed_cb, NULL);
+                                     _combobox_source_item_pressed_cb, NULL);
 
     evas_object_show(ui->combobox_source);
 
@@ -252,7 +249,7 @@ Ui_Main_Contents *elm_window_create(void)
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
 
     evas_object_smart_callback_add(ui->combobox_dest, "item,pressed",
-                                  _combobox2_item_pressed_cb, NULL);
+                                  _combobox_storage_item_pressed_cb, NULL);
 
     ui->progressbar= elm_progressbar_add(ui->win);
     evas_object_size_hint_align_set(ui->progressbar, EVAS_HINT_FILL, 0.5);
@@ -288,14 +285,15 @@ Ui_Main_Contents *elm_window_create(void)
 
     evas_object_resize(ui->win, 400,100);
 
+    evas_object_show(ui->win);
+
+    evas_object_smart_callback_add(ui->win, "delete,request", win_del, NULL);
+    
     uid_t euid = geteuid();
     if (euid != 0) {
         error_popup(ui->win);
     }
 
-    evas_object_show(ui->win);
-
-    evas_object_smart_callback_add(ui->win, "delete,request", win_del, NULL);
  
     return ui;
 }
