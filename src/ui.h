@@ -32,6 +32,8 @@ struct distro_t {
     char *url;
 };
 
+distro_t *distributions[128];
+
 Ui_Main_Contents *elm_window_create(void);
 void update_combobox_storage(void);
 
