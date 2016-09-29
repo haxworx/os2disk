@@ -121,7 +121,7 @@ static void
 thread_do(void *data, Ecore_Thread *thread)
 {
     int count = 0;
-    ui->sha256sum = os_fetch_and_write(thread, remote_url, local_url);
+    ui->sha256sum = www_file_save(thread, remote_url, local_url);
 
     if (ecore_thread_check(thread)) {
        return;
@@ -179,22 +179,20 @@ _bt_cancel_clicked_cb(void *data, Evas_Object *obj, void *event)
 }
 
 static void
-_bt_clicked_cb(void *data, Evas_Object *obj, void *event EINA_UNUSED)
+_bt_clicked_cb(void *data EINA_UNUSED, Evas_Object *obj, void *event EINA_UNUSED)
 {
-   (void) data;
    if (!remote_url) return;
    if (!local_url) return;
 
-   /*
-   ecore_os_fetch_and_write(remote_url, local_url);
+   /* 
+   ecore_www_file_save(remote_url, local_url);
 
    return; 
-   */
+   */ 
 
    elm_object_disabled_set(ui->bt_ok, EINA_TRUE);
    elm_progressbar_pulse(ui->progressbar, EINA_TRUE);
 
-   printf("remote: %s and local: %s\n", remote_url, local_url);
    thread = ecore_thread_feedback_run(thread_do, thread_feedback, thread_end, thread_cancel,
                                         NULL, EINA_FALSE);
 }

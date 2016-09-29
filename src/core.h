@@ -27,11 +27,14 @@
 
 #define h_addr h_addr_list[0]
 
-void ecore_os_fetch_and_write(const char *url, const char *uri);
+char *strdup(const char *s);
+
 
 /* fallback implementation */
-char *os_fetch_and_write(Ecore_Thread *thread, const char *url, const char *uri);
+char *www_file_save(Ecore_Thread *, const char *, const char *);
 
-char *strdup(const char *s);
+/* ecore implementation */
+void ecore_www_file_save(const char *, const char *);
+
 
 #endif

@@ -5,16 +5,12 @@ extern Ui_Main_Contents *ui;
 
 /* This uses ecore_con as the engine...*/
 
-SHA256_CTX ctx;
-
-// FIXME: this isn't being called
-// using legacy engine
 static Eina_Bool
 _data_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
 {
     Ecore_Con_Event_Url_Data *url_data = event_info;
-    SHA256_Update(&ctx, url_data->data, url_data->size);
-
+    /* XXX SHA256_Update here */
+    printf("ping!\n\n");
     return EINA_TRUE;
 }
 
@@ -23,10 +19,31 @@ _complete_cb(void *data, int type EINA_UNUSED, void *event_info)
 {
     Ecore_Con_Url *handle = data;
     Ecore_Con_Event_Url_Complete *url_complete = event_info;
+    SHA256_CTX ctx;
 
     ecore_con_url_free(handle);
     elm_progressbar_pulse(ui->progressbar, EINA_FALSE);
     elm_object_disabled_set(ui->bt_ok, EINA_FALSE);
+
+    SHA256_Init(&ctx);
+
+    /* XXX: This should be done on DATA but ecore_con isn't working. */
+    int fd = open(local_url, O_RDONLY);
+
+    char buf[4096];
+
+    ssize_t bytes;
+
+    do {
+       bytes = read(fd, buf, sizeof(buf));
+       if (bytes < 0) {
+           break;
+       }
+       SHA256_Update(&ctx, buf, bytes);
+ 
+    } while(bytes > 0); 
+
+    close(fd);
 
     unsigned char result[SHA256_DIGEST_LENGTH] = { 0 };
     SHA256_Final(result, &ctx);
@@ -52,16 +69,18 @@ _progress_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
     Ecore_Con_Event_Url_Progress *url_progress = event_info;
 
     elm_progressbar_value_set(ui->progressbar, (double) (url_progress->down.now / url_progress->down.total));
+    
     return EINA_TRUE;
 }
 
+
 void
-ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
+ecore_www_file_save(const char *remote_url, const char *local_uri)
 {
     if (!ecore_con_url_pipeline_get()) {
         ecore_con_url_pipeline_set(EINA_TRUE);
     }
-
+    
     Ecore_Con_Url *handle = ecore_con_url_new(remote_url);
 
     ecore_con_url_additional_header_add
@@ -77,7 +96,6 @@ ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
 
     ecore_con_url_get(handle); 
     
-    SHA256_Init(&ctx);
 
     elm_progressbar_pulse(ui->progressbar, EINA_TRUE);
     elm_object_disabled_set(ui->bt_ok, EINA_TRUE);
@@ -85,7 +103,8 @@ ecore_os_fetch_and_write(const char *remote_url, const char *local_uri)
 
 /* This is a fallback engine */
 
-void Error(char *fmt, ...)
+void 
+Error(char *fmt, ...)
 {
     char buf[1024];
     va_list(ap);
@@ -99,11 +118,11 @@ void Error(char *fmt, ...)
     exit(EXIT_FAILURE);
 }
 
-char *host_from_url(char *a)
+char *
+from_url_host(char *host)
 {
-    char *addr = strdup(a);
-
-    char *end = NULL;
+    char *addr = strdup(host);
+    char *end; 
 
     char *str = strstr(addr, "http://");
     if (str) {
@@ -121,22 +140,22 @@ char *host_from_url(char *a)
         return addr;
     }
 
-    Error("Invalid url");
-
     return NULL;
 }
 
-
-char *path_from_url(char *a)
+char *
+from_url_path(char *path)
 {
-    char *addr = strdup(a);
-    char *str = NULL;
+    if (path == NULL) return NULL;
+
+    char *addr = strdup(path);
     char *p = addr;
+
     if (!p) {
-        Error(":1:path_from_url");
+        return NULL;
     }
  
-    str= strstr(addr, "http://");
+    char *str = strstr(addr, "http://");
     if (str) {
         str += 7;
         char *p = strchr(str, '/');
@@ -154,14 +173,11 @@ char *path_from_url(char *a)
         }
     }
 
-    if (!p) {
-        Error(":2:path_from_url");
-    }
-
     return p;
 }
 
-BIO *connect_ssl(const char *hostname, int port)
+BIO *
+connect_ssl(const char *hostname, int port)
 {
     SSL_load_error_strings();
     ERR_load_BIO_strings();
@@ -205,7 +221,8 @@ struct header_t {
     int status;
 };
 
-ssize_t check_one_http_header(int sock, BIO *bio, header_t * headers)
+ssize_t 
+check_one_http_header(int sock, BIO *bio, header_t * headers)
 {
     int bytes = -1;
     int len = 0;
@@ -240,7 +257,8 @@ ssize_t check_one_http_header(int sock, BIO *bio, header_t * headers)
 }
 
 
-int check_http_headers(int sock, BIO *bio, const char *addr, const char *file)
+int 
+check_http_headers(int sock, BIO *bio, const char *addr, const char *file)
 {
     char out[8192] = { 0 };
     header_t headers;
@@ -270,7 +288,8 @@ int check_http_headers(int sock, BIO *bio, const char *addr, const char *file)
 }
 
 
-int connect_tcp(const char *hostname, int port)
+int 
+connect_tcp(const char *hostname, int port)
 {
     int sock;
     struct hostent *host;
@@ -304,7 +323,7 @@ int connect_tcp(const char *hostname, int port)
 #define CHUNK 512
 
 char *
-os_fetch_and_write(Ecore_Thread *thread, const char *remote_url, const char *local_url)
+www_file_save(Ecore_Thread *thread, const char *remote_url, const char *local_url)
 {
     BIO *bio = NULL;
     int is_ssl = 0;
@@ -317,11 +336,8 @@ os_fetch_and_write(Ecore_Thread *thread, const char *remote_url, const char *loc
 
     char *outfile = (char *) local_url;
 
-    const char *address = host_from_url(infile);
-    const char *path = path_from_url(infile);
-
-    printf("address: %s\n\n", address);
-    printf("path: %s\n\n", path);
+    const char *address = from_url_host(infile);
+    const char *path = from_url_path(infile);
 
     int in_fd, out_fd, sock;
     
