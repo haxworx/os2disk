@@ -29,6 +29,7 @@
 
 char *strdup(const char *s);
 
+void download_distribution_list(void);
 
 /* fallback implementation */
 char *www_file_save(Ecore_Thread *, const char *, const char *);

@@ -1,4 +1,5 @@
 #include "ui.h"
+#include "core.h"
 
 // FIXME: Get distributions from remote URL list.
 

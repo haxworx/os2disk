@@ -73,6 +73,38 @@ _progress_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
     return EINA_TRUE;
 }
 
+int downloaded = 0;
+
+static Eina_Bool
+_distro_data(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
+{
+    Ecore_Con_Event_Url_Data *url_data = event_info;
+    printf("size is %d\n", url_data->size);
+}
+
+static Eina_Bool
+_distro_complete(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
+{
+    downloaded = 1;
+}
+
+void download_distribution_list(void)
+{
+    if (!ecore_con_url_pipeline_get()) {
+        ecore_con_url_pipeline_set(EINA_TRUE);
+    }
+
+    Ecore_Con_Url *h = ecore_con_url_new("http://haxlab.org/index.old");
+   
+    ecore_con_url_get(h);
+
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _distro_complete, NULL);
+
+    while (!downloaded) {
+        usleep(100);
+    }
+   printf("file done!\n\n\n");
+}
 
 void
 ecore_www_file_save(const char *remote_url, const char *local_uri)
