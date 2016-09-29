@@ -3,34 +3,132 @@
 
 extern Ui_Main_Contents *ui;
 
-/* This uses ecore_con as the engine...*/
+char buffer[65535];
+ssize_t total = 0;
 
-SHA256_CTX ctx;
+void
+populate_list(void)
+{
+    char *start = &buffer[0];
+    int count = 0;
+
+    while (start) {
+        char *end = strchr(start, '=');
+        if (!end) break;
+        *end = '\0';
+        char *name = strdup(start);
+        start = end + 1; end++;
+        while (end[0] != '\n') {
+            end++;
+        }
+        *end = '\0';
+        char *url = strdup(start);
+        printf("url %s\n", url);
+        printf("name %s\n\n", name);
+        distributions[count] = malloc(sizeof(distro_t));
+        distributions[count]->name = strdup(name);
+        distributions[count]->url = strdup(url);
+        count++;
+
+        start = end + 1;
+    }
+
+    distributions[count] = NULL;
+}
+
+typedef struct _handler_t handle_t;
+struct _handler_t {
+    Ecore_Con_Url *h;
+    Ecore_Event_Handler *add;
+    Ecore_Event_Handler *complete;
+};
 
 static Eina_Bool
-_data_cb(void *data, int type EINA_UNUSED, void *event_info)
+_list_data_cb(void *data, int type EINA_UNUSED, void *event_info)
 {
     Ecore_Con_Event_Url_Data *url_data = event_info;
-    int *fd = data;
-    SHA256_Update(&ctx, url_data->data, url_data->size);
-    write(*fd, url_data->data, url_data->size);
+    char *buf = &buffer[total];
 
-    printf("ping!\n\n");
+    int i;
+
+    for (i = 0; i < url_data->size; i++) {
+        buf[i] = url_data->data[i];
+    }
+    total += url_data->size;
+}
+
+static Eina_Bool
+_list_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
+{
+    handle_t *handle = data;
+
+    Ecore_Con_Event_Url_Complete *url_complete = event_info;
+    Ecore_Con_Url *h = data;
+    printf("STATUS %d\n\n",  url_complete->status);
+    populate_list();
+    update_combobox_source();
+
+    ecore_event_handler_del(handle->add);
+    ecore_event_handler_del(handle->complete);
+    ecore_con_url_free(handle->h);
+}
+
+Eina_Bool
+get_distribution_list(void)
+{
+    handle_t *handler = malloc(sizeof(*handler));
+
+    if (!ecore_con_url_pipeline_get()) {
+        ecore_con_url_pipeline_set(EINA_TRUE);
+    }
+
+    handler->h = ecore_con_url_new("http://haxlab.org/list.txt");
+
+    handler->add = ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, _list_data_cb, NULL);
+    handler->complete = ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _list_complete_cb, handler);
+
+    ecore_con_url_get(handler->h);
+}
+
+
+/* uses ecore_con as the engine...*/
+
+SHA256_CTX ctx;
+int fd = -1;
+
+static Eina_Bool
+_download_data_cb(void *data, int type EINA_UNUSED, void *event_info)
+{
+    Ecore_Con_Event_Url_Data *url_data = event_info;
+    SHA256_Update(&ctx, url_data->data, url_data->size);
+    int chunk = url_data->size;
+    char *pos = url_data->data;
+
+    while (chunk) {
+        ssize_t count =  write(fd, pos, chunk);
+
+        if (count <= 0) {
+            break;
+        }
+         
+        pos += chunk; 
+        chunk -= count;
+    }
+
     return EINA_TRUE;
 }
 
 static Eina_Bool
-_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
+_download_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
 {
-    int *fd = data;
+    Ecore_Con_Url *h = data;
+
     Ecore_Con_Event_Url_Complete *url_complete = event_info;
-    SHA256_CTX ctx;
 
     elm_progressbar_pulse(ui->progressbar, EINA_FALSE);
     elm_object_disabled_set(ui->bt_ok, EINA_FALSE);
 
-
-    close(*fd);
+    close(fd);
 
     unsigned char result[SHA256_DIGEST_LENGTH] = { 0 };
     SHA256_Final(result, &ctx);
@@ -47,13 +145,18 @@ _complete_cb(void *data, int type EINA_UNUSED, void *event_info)
 
     elm_object_text_set(ui->sha256_label, sha256);
 
+    ecore_con_url_free(h);
+
     return EINA_TRUE;
 }
 
 static Eina_Bool
-_progress_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
+_download_progress_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_info)
 {
     Ecore_Con_Event_Url_Progress *url_progress = event_info;
+    if (url_progress->down.now == 0 || url_progress->down.total == 0) {
+        return EINA_TRUE;
+    }
 
     elm_progressbar_value_set(ui->progressbar, (double) (url_progress->down.now / url_progress->down.total));
     
@@ -71,20 +174,14 @@ ecore_www_file_save(const char *remote_url, const char *local_uri)
 
     Ecore_Con_Url *handle = ecore_con_url_new(remote_url);
 
-    ecore_con_url_additional_header_add
-    (handle, "user-agent",
-    "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19");
-    
-    int fd = open(local_uri,  O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    fd = open(local_uri,  O_CREAT | O_WRONLY | O_TRUNC, 0644);
 
-    ecore_event_handler_add(ECORE_CON_EVENT_URL_PROGRESS, _progress_cb, NULL);
-    ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, _data_cb, fd);
-    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _complete_cb, fd);
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_PROGRESS, _download_progress_cb, NULL);
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, _download_data_cb, NULL);
+    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _download_complete_cb, handle);
 
     ecore_con_url_get(handle); 
     
-    ecore_con_url_free(handle);
-
     elm_progressbar_pulse(ui->progressbar, EINA_TRUE);
     elm_object_disabled_set(ui->bt_ok, EINA_TRUE);
 }

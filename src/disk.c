@@ -104,6 +104,7 @@ skip:
 
     eeze_shutdown();
 #endif   
+    storage[disk_count++] = strdup("test.txt");
     storage[disk_count] = NULL;
     if (disk_count) {
         if (ui) {

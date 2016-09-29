@@ -36,24 +36,20 @@ void
 update_combobox_source(void)
 {
     int i;
-//    elm_genlist_clear(ui->combobox_source);
 
     Elm_Genlist_Item_Class *itc;
     itc = elm_genlist_item_class_new();
     itc->item_style = "default";
     itc->func.text_get = gl_text_get;
-    itc->func.filter_get =gl_filter_get;
-
-
+    
     for (i = 0; distributions[i] != NULL; i++) {
         elm_genlist_item_append(ui->combobox_source, itc, (void *) (uintptr_t) i,
                 NULL, ELM_GENLIST_ITEM_NONE, NULL, (void *)(uintptr_t) i);
-       Elm_Object_Item *item = elm_genlist_first_item_get(ui->combobox_source);
-        elm_genlist_item_update(item);
     }
 
     if (i) {
-       // elm_object_part_text_set(ui->combobox_dest, "guide", "destination...");
+          elm_object_part_text_set(ui->combobox_source, "guide", "source...");
+          elm_genlist_realized_items_update(ui->combobox_source);
     }
 }
 
@@ -207,6 +203,7 @@ _bt_clicked_cb(void *data EINA_UNUSED, Evas_Object *obj, void *event EINA_UNUSED
    if (!remote_url) return;
    if (!local_url) return;
 
+  printf("local: %s and remote: %s\n\n", remote_url, local_url);
    ecore_www_file_save(remote_url, local_url);
 
    return; 
@@ -241,12 +238,11 @@ Ui_Main_Contents *elm_window_create(void)
     ui->combobox_source = elm_combobox_add(ui->win);
     evas_object_size_hint_weight_set(ui->combobox_source, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(ui->combobox_source, EVAS_HINT_FILL, 0);
-    elm_object_part_text_set(ui->combobox_source, "guide", "source...");
+    //elm_object_part_text_set(ui->combobox_source, "guide", "source...");
     elm_box_pack_end(ui->box, ui->combobox_source);
 
     evas_object_smart_callback_add(ui->combobox_source, "item,pressed",
                                   _combobox_item_pressed_cb, NULL);
-
     evas_object_show(ui->combobox_source);
 
     ui->combobox_dest = elm_combobox_add(ui->win);
@@ -267,6 +263,7 @@ Ui_Main_Contents *elm_window_create(void)
 
     evas_object_smart_callback_add(ui->combobox_dest, "item,pressed",
                                   _combobox2_item_pressed_cb, NULL);
+
     ui->progressbar= elm_progressbar_add(ui->win);
     evas_object_size_hint_align_set(ui->progressbar, EVAS_HINT_FILL, 0.5);
     evas_object_size_hint_weight_set(ui->progressbar, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);

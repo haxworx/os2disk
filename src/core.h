@@ -34,6 +34,7 @@ void download_distribution_list(void);
 /* fallback implementation */
 char *www_file_save(Ecore_Thread *, const char *, const char *);
 
+Eina_Bool get_distribution_list(void);
 /* ecore implementation */
 void ecore_www_file_save(const char *, const char *);
 
