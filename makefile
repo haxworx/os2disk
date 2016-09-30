@@ -1,4 +1,4 @@
-TARGET = os2disk
+TARGET = establish
 SRC_DIR=src
 
 PKGS=ecore ecore-con elementary openssl 

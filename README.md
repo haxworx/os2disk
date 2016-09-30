@@ -1,7 +1,15 @@
-# os2disk
+# Establish - The Installer
 
-This program is designed atm for use with EFL on
-Linux and OpenBSD.
+This program will help you install the latest operating system
+images to your local device.
 
-Download/write/checksum an OS to a device (EFL)
+You can modify and create your own list from your server or use
+the stock list.
+
+I will try to keep that up-to-date.
+
+The program will download, check and write in one action.
+
+Once the write to the disk is complete the SHA256 checksum will
+be displayed for your convenience.
 
