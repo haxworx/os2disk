@@ -72,6 +72,7 @@ skip:
     free(drives);
 
 #else 
+    /* This is problematic...eeze is broken atm. */
     eeze_init();
     Eina_List *devices = eeze_udev_find_by_type(EEZE_UDEV_TYPE_DRIVE_REMOVABLE, NULL);
     Eina_List *l;
@@ -104,7 +105,6 @@ skip:
 
     eeze_shutdown();
 #endif   
-    storage[disk_count++] = strdup("test.txt");
     storage[disk_count] = NULL;
     if (disk_count) {
         if (ui) {

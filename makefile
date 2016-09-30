@@ -2,12 +2,11 @@ TARGET = os2disk
 SRC_DIR=src
 
 PKGS=ecore ecore-con elementary openssl 
-# eeze
 LIBS = 
 
-ifeq ($(OS),Linux)
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
 	PKGS += eeze
-else
 endif
 
 CFLAGS= -g -ggdb3

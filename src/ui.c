@@ -133,7 +133,7 @@ thread_end(void *data, Ecore_Thread *thread)
     }
 
     elm_object_disabled_set(ui->bt_ok, EINA_FALSE);
-    elm_progressbar_pulse(ui->progressbar, EINA_FALSE);
+    //elm_progressbar_pulse(ui->progressbar, EINA_FALSE);
     while((ecore_thread_wait(thread, 0.1)) != EINA_TRUE);
 }
 
@@ -188,7 +188,7 @@ _bt_clicked_cb(void *data EINA_UNUSED, Evas_Object *obj, void *event EINA_UNUSED
    /* CANNOT REACH: this is the fallback engine */ 
 
    elm_object_disabled_set(ui->bt_ok, EINA_TRUE);
-   elm_progressbar_pulse(ui->progressbar, EINA_TRUE);
+   //elm_progressbar_pulse(ui->progressbar, EINA_TRUE);
 
    thread = ecore_thread_feedback_run(thread_do, thread_feedback, thread_end, thread_cancel,
                                         NULL, EINA_FALSE);
@@ -255,7 +255,7 @@ Ui_Main_Contents *elm_window_create(void)
     ui->progressbar= elm_progressbar_add(ui->win);
     evas_object_size_hint_align_set(ui->progressbar, EVAS_HINT_FILL, 0.5);
     evas_object_size_hint_weight_set(ui->progressbar, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    elm_progressbar_pulse_set(ui->progressbar, EINA_TRUE);
+    //elm_progressbar_pulse_set(ui->progressbar, EINA_TRUE);
     elm_progressbar_span_size_set(ui->progressbar, 1.0);
     elm_progressbar_unit_format_set(ui->progressbar, "%1.2f%%");
     elm_box_pack_end(ui->box, ui->progressbar);
@@ -281,18 +281,21 @@ Ui_Main_Contents *elm_window_create(void)
 
  
     ui->bt_ok = elm_button_add(ui->win);
-    elm_object_text_set(ui->bt_ok, "Write");
+    elm_object_text_set(ui->bt_ok, "Start");
     evas_object_show(ui->bt_ok);
     elm_table_pack(ui->table, ui->bt_ok, 0, 0, 1, 1);
 
     evas_object_smart_callback_add(ui->bt_ok, "clicked", _bt_clicked_cb, NULL);
 
+    /*
+     *  this is confusing...!!!
     ui->bt_cancel = elm_button_add(ui->win);
     elm_object_text_set(ui->bt_cancel, "Cancel");
     evas_object_show(ui->bt_cancel);
     elm_table_pack(ui->table, ui->bt_cancel, 1, 0, 1, 1);
 
     evas_object_smart_callback_add(ui->bt_cancel, "clicked", _bt_cancel_clicked_cb, NULL);
+    */
 
     evas_object_resize(ui->win, 400,100);
 
