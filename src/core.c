@@ -35,11 +35,14 @@ populate_list(void)
 
     distributions[count] = NULL;
 
+    /* CREATE the main window here... */
     ui = elm_window_create();
 }
 
-typedef struct _handler_t handle_t;
+typedef struct _handler_t handler_t;
 struct _handler_t {
+    SHA256_CTX ctx;
+    int fd;
     Ecore_Con_Url *h;
     Ecore_Event_Handler *add;
     Ecore_Event_Handler *complete;
@@ -63,7 +66,7 @@ _list_data_cb(void *data, int type EINA_UNUSED, void *event_info)
 static Eina_Bool
 _list_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
 {
-    handle_t *handle = data;
+    handler_t *handle = data;
     Ecore_Con_Event_Url_Complete *url_complete = event_info;
 
     if (url_complete->status != 200) {
@@ -81,7 +84,7 @@ _list_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
 Eina_Bool
 get_distribution_list(void)
 {
-    handle_t *handler = malloc(sizeof(*handler));
+    handler_t *handler = malloc(sizeof(*handler));
 
     if (!ecore_con_url_pipeline_get()) {
         ecore_con_url_pipeline_set(EINA_TRUE);
@@ -98,19 +101,18 @@ get_distribution_list(void)
 
 /* uses ecore_con as the engine...*/
 
-SHA256_CTX ctx;
-int fd = -1;
 
 static Eina_Bool
 _download_data_cb(void *data, int type EINA_UNUSED, void *event_info)
 {
+    handler_t *h = data;
     Ecore_Con_Event_Url_Data *url_data = event_info;
-    SHA256_Update(&ctx, url_data->data, url_data->size);
+    SHA256_Update(&h->ctx, url_data->data, url_data->size);
     int chunk = url_data->size;
     char *pos = url_data->data;
 
     while (chunk) {
-        ssize_t count =  write(fd, pos, chunk);
+        ssize_t count =  write(h->fd, pos, chunk);
 
         if (count <= 0) {
             break;
@@ -126,17 +128,14 @@ _download_data_cb(void *data, int type EINA_UNUSED, void *event_info)
 static Eina_Bool
 _download_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
 {
-    Ecore_Con_Url *h = data;
+    handler_t *h = data;
 
     Ecore_Con_Event_Url_Complete *url_complete = event_info;
 
-    elm_progressbar_pulse(ui->progressbar, EINA_FALSE);
-    elm_object_disabled_set(ui->bt_ok, EINA_FALSE);
-
-    close(fd);
+    close(h->fd);
 
     unsigned char result[SHA256_DIGEST_LENGTH] = { 0 };
-    SHA256_Final(result, &ctx);
+    SHA256_Final(result, &h->ctx);
 
     int i;
 
@@ -150,7 +149,15 @@ _download_complete_cb(void *data, int type EINA_UNUSED, void *event_info)
 
     elm_object_text_set(ui->sha256_label, sha256);
 
-    ecore_con_url_free(h);
+    ecore_con_url_free(h->h);
+ 
+    elm_progressbar_pulse(ui->progressbar, EINA_FALSE);
+    elm_object_disabled_set(ui->bt_ok, EINA_FALSE);
+
+    ecore_event_handler_del(h->add);
+    ecore_event_handler_del(h->complete);
+    
+    //free(h);
 
     return EINA_TRUE;
 }
@@ -168,30 +175,34 @@ _download_progress_cb(void *data EINA_UNUSED, int type EINA_UNUSED, void *event_
     return EINA_TRUE;
 }
 
+static handler_t *h;
+
 void
 ecore_www_file_save(const char *remote_url, const char *local_uri)
 {
     if (!ecore_con_url_pipeline_get()) {
         ecore_con_url_pipeline_set(EINA_TRUE);
     }
-    
-    SHA256_Init(&ctx);
 
-    Ecore_Con_Url *handle = ecore_con_url_new(remote_url);
-    if (!handle) {
+    h = malloc(sizeof(handler_t));
+
+    SHA256_Init(&h->ctx);
+
+    h->h = ecore_con_url_new(remote_url);
+    if (!h->h) {
         return;
     }
 
-    fd = open(local_uri,  O_CREAT | O_WRONLY | O_TRUNC, 0644);
-    if (fd == -1) {
+    h->fd = open(local_uri,  O_CREAT | O_WRONLY | O_CREAT, 0644);
+    if (h->fd == -1) {
         return;
     }
 
     ecore_event_handler_add(ECORE_CON_EVENT_URL_PROGRESS, _download_progress_cb, NULL);
-    ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, _download_data_cb, NULL);
-    ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _download_complete_cb, handle);
+    h->add = ecore_event_handler_add(ECORE_CON_EVENT_URL_DATA, _download_data_cb, h);
+    h->complete = ecore_event_handler_add(ECORE_CON_EVENT_URL_COMPLETE, _download_complete_cb, h);
 
-    ecore_con_url_get(handle); 
+    ecore_con_url_get(h->h); 
     
     elm_progressbar_pulse(ui->progressbar, EINA_TRUE);
     elm_object_disabled_set(ui->bt_ok, EINA_TRUE);

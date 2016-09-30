@@ -217,6 +217,7 @@ Ui_Main_Contents *elm_window_create(void)
     ui->combobox_source = elm_combobox_add(ui->win);
     evas_object_size_hint_weight_set(ui->combobox_source, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(ui->combobox_source, EVAS_HINT_FILL, 0);
+    elm_object_part_text_set(ui->combobox_source, "guide", "select...");
     elm_box_pack_end(ui->box, ui->combobox_source);
 
     Elm_Genlist_Item_Class *itc = elm_genlist_item_class_new();
@@ -260,15 +261,25 @@ Ui_Main_Contents *elm_window_create(void)
     elm_box_pack_end(ui->box, ui->progressbar);
     evas_object_show(ui->progressbar);
 
-    ui->sha256_label = elm_label_add(ui->win);
+    ui->sha256_label = elm_entry_add(ui->win);
+    elm_entry_single_line_set(ui->sha256_label, EINA_TRUE);
+    elm_entry_scrollable_set(ui->sha256_label, EINA_TRUE);
+    evas_object_size_hint_weight_set(ui->sha256_label, EVAS_HINT_EXPAND, 0.5);
+    evas_object_size_hint_align_set(ui->sha256_label, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    evas_object_size_hint_padding_set(ui->sha256_label, 5, 5, 0, 0);
     elm_box_pack_end(ui->box, ui->sha256_label);
-    evas_object_size_hint_align_set(ui->sha256_label, 0.5, EVAS_HINT_FILL);
     evas_object_show(ui->sha256_label);
 
+    Evas_Object *separator = elm_separator_add(ui->win);
+    elm_separator_horizontal_set(separator, EINA_TRUE);
+    evas_object_show(separator);
+    elm_box_pack_end(ui->box, separator); 
+    
     ui->table = elm_table_add(ui->win);
     elm_box_pack_end(ui->box, ui->table);
     evas_object_show(ui->table);
 
+ 
     ui->bt_ok = elm_button_add(ui->win);
     elm_object_text_set(ui->bt_ok, "Write");
     evas_object_show(ui->bt_ok);
